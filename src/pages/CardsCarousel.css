@@ -1,0 +1,124 @@
+/* Página */
+.cards-carousel-page {
+    min-height: 100vh;
+    background-color: #050505;
+    background-image:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.14) 0%, rgba(255, 255, 255, 0.04) 100%),
+        radial-gradient(circle at 50% 50%, rgba(5, 5, 5, 0.45) 0%, #050505 100%),
+        url('/banner3.png');
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+    background-repeat: no-repeat;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 20px;
+    box-sizing: border-box;
+}
+
+.carousel-toolbar {
+    position: absolute;
+    top: 110px;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    z-index: 30;
+}
+
+.grid-toggle {
+    display: inline-flex;
+    background: rgba(15, 23, 42, 0.7);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 999px;
+    overflow: hidden;
+    backdrop-filter: blur(6px);
+}
+
+.grid-toggle button {
+    border: none;
+    background: transparent;
+    color: rgba(255, 255, 255, 0.75);
+    padding: 8px 18px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    cursor: pointer;
+}
+
+.grid-toggle button.active {
+    background: rgba(255, 255, 255, 0.12);
+    color: #fff;
+}
+
+.cards-carousel {
+    position: relative;
+    width: 100%;
+    max-width: 1100px;
+    height: 560px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.carousel-stage {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    perspective: 1200px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: visible;
+}
+
+.carousel-card {
+    position: absolute;
+    transition: transform 0.45s ease, opacity 0.45s ease;
+    transform-style: preserve-3d;
+    cursor: pointer;
+}
+
+.carousel-card.active {
+    cursor: default;
+}
+
+.carousel-card .driver-card {
+    transform: translateZ(0);
+}
+
+.carousel-nav {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    border: none;
+    background: rgba(15, 23, 42, 0.75);
+    color: white;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    font-size: 28px;
+    cursor: pointer;
+    z-index: 20;
+    backdrop-filter: blur(6px);
+}
+
+.carousel-nav.left { left: 0; }
+.carousel-nav.right { right: 0; }
+
+@media (max-width: 768px) {
+    .carousel-toolbar {
+        top: 90px;
+    }
+
+    .cards-carousel {
+        height: 520px;
+    }
+
+    .carousel-nav {
+        width: 38px;
+        height: 38px;
+        font-size: 24px;
+    }
+}

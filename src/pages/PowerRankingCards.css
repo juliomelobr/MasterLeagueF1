@@ -1,0 +1,199 @@
+.pr-cards-page {
+    min-height: 100vh;
+    background-color: #0a0a0a;
+    background-image: url('/banner3.png');
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+    background-repeat: no-repeat;
+    padding: 120px 24px 60px;
+    color: #fff;
+    --card-w: 320px;
+    --card-h: 480px;
+    --card-scale: 1;
+}
+
+.pr-cards-header {
+    max-width: 1200px;
+    margin: 0 auto 40px;
+    text-align: center;
+}
+
+.pr-cards-header h1 {
+    font-family: 'Titillium Web', 'Archivo Black', sans-serif;
+    font-size: 3rem;
+    font-weight: 900;
+    font-style: italic;
+    text-transform: uppercase;
+    letter-spacing: 3px;
+    margin: 0 0 10px;
+    color: #fff;
+    text-shadow: 
+        0 0 10px rgba(255, 215, 0, 0.8),
+        0 0 20px rgba(255, 153, 0, 0.6),
+        0 0 30px rgba(255, 153, 0, 0.4),
+        0 4px 8px rgba(0, 0, 0, 0.8),
+        0 8px 16px rgba(0, 0, 0, 0.6);
+    transform: skewX(-5deg);
+}
+
+.pr-cards-header p {
+    margin: 0;
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 0.95rem;
+}
+
+.pr-cards-grid-toggle {
+    max-width: 1200px;
+    margin: 0 auto 30px;
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+}
+
+.pr-cards-grid-toggle button {
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: rgba(255, 255, 255, 0.75);
+    padding: 10px 20px;
+    border-radius: 999px;
+    font-size: 0.8rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    cursor: pointer;
+    backdrop-filter: blur(6px);
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.25),
+        0 6px 14px rgba(0, 0, 0, 0.4);
+    transition: transform 0.15s ease, box-shadow 0.15s ease, filter 0.15s ease;
+}
+
+.pr-cards-grid-toggle button.active {
+    color: #fff;
+    filter: brightness(1.08);
+    transform: translateY(-1px);
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.35),
+        0 8px 16px rgba(0, 0, 0, 0.45);
+}
+
+.pr-cards-grid-toggle .grid-btn.carreira {
+    background: linear-gradient(180deg, #5c0e18 0%, #3b0a12 55%, #26060b 100%);
+    border-color: rgba(255, 255, 255, 0.12);
+}
+
+.pr-cards-grid-toggle .grid-btn.carreira.active {
+    background: linear-gradient(180deg, #a11b2c 0%, #7b1422 55%, #4b0c16 100%);
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.45),
+        0 10px 18px rgba(0, 0, 0, 0.5),
+        0 0 20px rgba(161, 27, 44, 0.6),
+        0 0 40px rgba(161, 27, 44, 0.4);
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
+}
+
+.pr-cards-grid-toggle .grid-btn.light {
+    background: linear-gradient(180deg, #0b2a4b 0%, #071a33 55%, #041022 100%);
+    border-color: rgba(255, 255, 255, 0.12);
+}
+
+.pr-cards-grid-toggle .grid-btn.light.active {
+    background: linear-gradient(180deg, #1b5aa3 0%, #14447c 55%, #0d2b4d 100%);
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.45),
+        0 10px 18px rgba(0, 0, 0, 0.5),
+        0 0 20px rgba(27, 90, 163, 0.6),
+        0 0 40px rgba(27, 90, 163, 0.4);
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
+}
+
+.pr-cards-grid-toggle .grid-btn.historico {
+    background: linear-gradient(180deg, #4a5568 0%, #2d3748 55%, #1a202c 100%);
+    border-color: rgba(255, 255, 255, 0.12);
+}
+
+.pr-cards-grid-toggle .grid-btn.historico:hover {
+    background: linear-gradient(180deg, #5a6578 0%, #3d4758 55%, #2a303c 100%);
+    color: #fff;
+    filter: brightness(1.1);
+    transform: translateY(-1px);
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.35),
+        0 8px 16px rgba(0, 0, 0, 0.45),
+        0 0 15px rgba(255, 215, 0, 0.3);
+}
+
+.pr-cards-grid {
+    max-width: 1400px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 24px;
+    overflow: visible;
+}
+
+.pr-card-wrapper {
+    display: flex;
+    justify-content: center;
+    width: var(--card-w);
+    height: var(--card-h);
+    justify-self: center;
+    overflow: visible;
+}
+
+.pr-card-wrapper .driver-card {
+    width: var(--card-w);
+    height: var(--card-h);
+    transform: none;
+    transform-origin: top center;
+    overflow: visible;
+}
+
+@media (max-width: 768px) {
+    .pr-cards-grid {
+        grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    }
+}
+
+/* Ajustes específicos para o grid do Power Ranking */
+.pr-cards-page .card-name-block {
+    overflow: hidden;
+    left: 40px;  /* ← ajuste aqui para mover horizontalmente */
+}
+
+.pr-cards-page .driver-card .card-name-block .driver-name {
+    max-width: 100% !important;
+    font-size: 19px !important;
+    line-height: 1.05 !important;
+    text-align: left !important;
+    letter-spacing: normal !important;
+    font-weight: normal !important;
+    color: #8fd4ff !important;
+}
+
+.pr-cards-loading {
+    min-height: 80vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #e2e8f0;
+    font-size: 1rem;
+}
+
+@media (max-width: 768px) {
+    .pr-cards-page {
+        padding-top: 100px;
+    }
+
+    .pr-cards-header h1 {
+        font-size: 1.6rem;
+    }
+
+    .pr-cards-grid-toggle {
+        margin-bottom: 20px;
+    }
+
+    .pr-cards-page .driver-card .card-name-block .driver-name {
+        font-size: 17px !important;  /* ← tamanho para celular */
+    }
+}

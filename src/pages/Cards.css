@@ -1,0 +1,340 @@
+@import url('https://fonts.googleapis.com/css2?family=Archivo+Black&family=Titillium+Web:ital,wght@0,200;0,300;0,400;0,600;0,700;0,900;1,200;1,300;1,400;1,600;1,700&display=swap');
+
+/* Container */
+.ea-container {
+    min-height: 100vh;
+    background-color: #050505;
+    background-image: 
+        linear-gradient(180deg, rgba(255, 255, 255, 0.14) 0%, rgba(255, 255, 255, 0.04) 100%),
+        radial-gradient(circle at 50% 50%, rgba(5, 5, 5, 0.45) 0%, #050505 100%),
+        url('/banner3.png');
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+    background-repeat: no-repeat;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+@media (max-width: 768px) {
+    .ea-container {
+        align-items: flex-start;
+        padding-top: 120px;
+        padding-bottom: 40px;
+    }
+
+    /* Forçar tamanho nos cards ignorando o reset global do index.css */
+    .driver-card .driver-name {
+        font-size: 44px !important;
+        line-height: 1.05 !important;
+        max-width: none !important;
+    }
+}
+
+@media (max-width: 480px) {
+    .driver-card .driver-name {
+        font-size: 46px !important;
+        line-height: 1.08 !important;
+        max-width: none !important;
+    }
+}
+
+/* === CARD PRINCIPAL === */
+.driver-card {
+    width: 320px;
+    height: 480px;
+    background: #050505;
+    position: relative;
+    overflow: hidden;
+    font-family: 'Teko', sans-serif;
+    color: white;
+    box-shadow:
+        0 0 18px rgba(255, 255, 255, 0.12),
+        0 0 40px rgba(255, 255, 255, 0.06);
+}
+
+/* Camadas de Imagem */
+.card-bg-layer {
+    position: absolute;
+    inset: 0;
+    background-image: url('/backgrounds/Cards.png');
+    background-size: cover;
+    z-index: 1;
+}
+
+.card-front-layer {
+    position: absolute;
+    inset: 0;
+    background-image: url('/backgrounds/Cards-Front.png');
+    background-size: cover;
+    pointer-events: none;
+    z-index: 3
+}
+
+/* === FOTO DO PILOTO (TAMANHO AJUSTADO) === */
+.driver-photo {
+    position: absolute;
+    inset: 60px 60px 112px 20px; /* Mais largura para evitar cortes laterais */
+    z-index: 3;
+    overflow: visible;
+}
+
+.driver-photo::before {
+    content: '';
+    position: absolute;
+    inset: 25% 16% 25% 15%;
+    background: radial-gradient(circle at 50% 35%, rgba(0, 0, 0, 0.55) 0%, rgba(0, 0, 0, 0.35) 45%, rgba(0, 0, 0, 0) 70%);
+    filter: blur(16px);
+    z-index: 0;
+    pointer-events: none;
+}
+
+.driver-photo img {
+    width: 120%;
+    height: 100%;
+    object-fit: contain;
+    object-position: center center;
+    filter: brightness(1.1) contrast(1.1);
+    position: relative;
+    z-index: 1;
+}
+
+/* === OVERLAY DE INFORMAÇÕES === */
+.card-info-overlay {
+    position: absolute;
+    inset: 0;
+    z-index: 4;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    font-style: italic;
+}
+
+.card-logo {
+    font-family: 'Teko', sans-serif;
+    font-size: 24px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 3px;
+    margin-bottom: auto;
+    line-height: 1;
+}
+
+.card-logo span {
+    color: #ff3c6c;
+}
+
+/* PR Badge */
+.card-pr-badge {
+    background: transparent;
+    border-right: none;
+    padding: 6px 12px;
+    text-align: right;
+    clip-path: none;
+    margin-bottom: 4px;
+}
+
+.card-pr-badge .label {
+    font-family: 'Rajdhani', sans-serif;
+    display: block;
+    font-size: 9px;
+    font-weight: 600;
+    color: #ffb3b3;
+    letter-spacing: 1px;
+    text-shadow: 0 0 6px rgba(255, 70, 70, 0.6);
+}
+
+.card-pr-badge .main-pr {
+    font-family: 'Teko', sans-serif;
+    font-size: 40px;
+    font-weight: 800;
+    color: transparent;
+    line-height: 1;
+    background: linear-gradient(180deg, #fff3b0 0%, #f7d06a 45%, #f39c32 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    text-shadow: 0 0 10px rgba(247, 208, 106, 0.6), 0 0 18px rgba(243, 156, 50, 0.5);
+}
+
+/* Stats Block (Direita Inferior) */
+.card-stats-block {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+}
+
+.card-stat-row {
+    background: transparent;
+    padding: 50px 6px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    clip-path: none;
+    border-bottom: none;
+    position: absolute;
+}
+
+.card-stat-row.overall {
+    background: transparent;
+    border-bottom: none;
+    padding: 16px 10px;
+}
+
+/* Posições independentes dos textos de cada pilar */
+.stat-pr {
+    position: absolute;
+    right: 62px;
+    bottom: 132px;
+}
+
+.stat-overall {
+    right: 22px;
+    bottom: 108px;
+}
+
+.stat-performance {
+    right: 30px;
+    bottom: 54px;
+}
+
+.stat-racecraft {
+    right: 30px;
+    bottom: 36px;
+}
+
+.stat-conduta {
+    right: 30px;
+    bottom: 18px;
+}
+
+.stat-performance .value,
+.stat-racecraft .value {
+    font-size: 17px;
+}
+
+.stat-conduta .value {
+    font-size: 17px;
+}
+
+.stat-historico {
+    right: 42px;
+    bottom: 60px;
+}
+
+.card-stat-row .label {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 10px;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.9);
+    letter-spacing: 0.4px;
+    text-transform: uppercase;
+    min-width: 106px;
+    text-shadow: 0 0 6px rgba(255, 255, 255, 0.35);
+}
+
+.card-stat-row .value {
+    font-family: 'Teko', sans-serif;
+    font-size: 18px;
+    font-weight: 600;
+    color: transparent;
+    line-height: 1;
+    background: linear-gradient(180deg, #ffe9a6 0%, #f7c15b 60%, #f1a93b 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    text-shadow: 0 0 8px rgba(255, 206, 120, 0.45);
+}
+
+.card-stat-row.overall .value {
+    font-size: 22px;
+    color: transparent;
+    background: linear-gradient(180deg, #e0f2ff 0%, #7dd3fc 60%, #38bdf8 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    text-shadow: 0 0 10px rgba(125, 211, 252, 0.6);
+}
+
+.stat-racecraft .value {
+    color: transparent;
+    background: linear-gradient(180deg, #e0f2ff 0%, #7dd3fc 60%, #38bdf8 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    text-shadow: 0 0 10px rgba(125, 211, 252, 0.6);
+}
+
+/* Name Block (Esquerda Inferior) */
+.card-name-block {
+    position: absolute;
+    bottom: 68px;
+    left: 22px;
+
+    width: calc(100% - 44px);
+    max-width: calc(100% - 44px);
+
+    overflow: hidden; /* 🔒 trava estouro */
+    text-align: left;
+    pointer-events: none;
+}
+
+/* Valor do Hist\u00f3rico posicionado no lado direito do banner */
+.historico-value {
+    position: absolute;
+    right: 38px;
+    bottom: 47px;
+    font-family: 'Teko', sans-serif;
+    font-size: 18px;
+    font-weight: 600;
+    color: transparent;
+    line-height: 1;
+    text-align: right;
+    background: linear-gradient(180deg, #ffe9a6 0%, #f7c15b 60%, #f1a93b 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    text-shadow: 0 0 8px rgba(255, 206, 120, 0.45);
+}
+
+.driver-name {
+    font-family: 'Titillium Web', sans-serif;
+
+    display: block;
+    max-width: 100%;
+
+    font-size: 22px;
+    line-height: 1.05;
+
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+
+    font-style: italic;
+    text-transform: uppercase;
+
+    transform: skewX(-12deg);
+    transform-origin: left center;
+
+    margin-bottom: 10px;
+    text-align: left;
+
+    color: #8fd4ff;
+    text-shadow:
+        0 0 8px rgba(143, 212, 255, 0.65),
+        0 0 16px rgba(143, 212, 255, 0.45);
+}
+
+.driver-name span {
+    font-weight: 400;
+    color: transparent;
+    background: linear-gradient(150deg, #fff3b0 0%, #f7d06a 45%, #f39c32 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    text-shadow: 0 0 8px rgba(247, 208, 106, 0.7), 0 0 16px rgba(243, 156, 50, 0.6);
+}
+
+.driver-flag {
+    width: 35px;
+    height: auto;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}

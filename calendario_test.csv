@@ -1,0 +1,28 @@
+Calendário ML1,Coluna 1,Coluna 2,Coluna 3,,Calendário ML1,Coluna 1,Coluna 2,Coluna 3,,Calendário ML1,Coluna 1,Coluna 2,Coluna 3,,Calendário ML1,Coluna 1,Coluna 2,Coluna 3
+,TEMP,1,,,,TEMP,2,,,,TEMP,3,,,,TEMP,4,
+Etapa,Modelo,Data,Circuito,,Etapa,Modelo,Data,Circuito,,Etapa,Modelo,Data,Circuito,,Etapa,Modelo,Data,Circuito
+Etapa 1,"Qualy 18""",15/01/26,AbuDhabi,,Etapa 1,"Qualy 18""",09/04/26,Bahrein,,Etapa 1,"Qualy 18""",02/07/26,Inglaterra,,Etapa 1,"Qualy 18""",22/10/26,Texas
+Etapa 2,"Qualy 18""",22/01/26,Austria,,Etapa 2,"Qualy 18""",16/04/26,Arábia Saudita,,Etapa 2,"Qualy 18""",09/07/26,Madrid,,Etapa 2,"Qualy 18""",29/10/26,México
+Etapa 3,Sprint,29/01/26,Texas,,Etapa 3,Sprint,23/04/26,Imola,,Etapa 3,Sprint,16/07/26,Bélgica,,Etapa 3,Sprint,05/11/26,Brasil
+Etapa 4,"Qualy 18""",05/02/26,Espanha,,Etapa 4,"Qualy 18""",30/04/26,Miami,,Etapa 4,"Qualy 18""",23/07/26,Hungria,,Etapa 4,"Qualy 18""",12/11/26,Las Vegas
+Etapa 5,"Qualy 18""",12/02/26,Catar,,,,,,,Intervalo,,30/07 & 06/08,,,Intervalo,Consc. Negra,19/11/26,-
+Intervalo,Carnaval,17/02/26,-,,Etapa 5,"Qualy 18""",07/05/26,Singapura,,Etapa 5,"Qualy 18""",13/08/26,Azerbaijão,,Etapa 5,"Qualy 18""",26/11/26,Catar
+Etapa 6,Sprint,26/02/26,Mèxico,,Etapa 6,Sprint,14/05/26,Japáo,,Etapa 6,Sprint,20/08/26,Holanda,,Etapa 6,Sprint,03/12/26,Abu Dhabi
+Etapa 7,"Qualy 18""",05/03/26,Austrália,,Etapa 7,"Qualy 18""",21/05/26,Canadá,,Etapa 7,"Qualy 18""",27/08/26,Las Vegas,,Etapa 7,"Qualy 18""",10/12/26,Bahrein
+Etapa 8,"Qualy 18""",12/03/26,China,,Etapa 8,"Qualy 18""",28/05/26,Brasil,,Etapa 8,"Qualy 18""",03/09/26,Monza,,Etapa 8,"Qualy 18""",17/12/26,Japão
+,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,
+Etapa,Modelo,Data,Circuito,,MINICUP,,,,,,,,,,,,,
+Etapa 1,"Qualy 18""",15/01/26,AbuDhabi,,,,,,,,,,,,,,,
+Etapa 2,"Qualy 18""",22/01/26,Austria,,1,Austrália,,,,ETAPA 1,Inglaterra,,,,08 de Dezembro,,,
+Etapa 3,Sprint,29/01/26,Texas,,2,Bélgica,FORA,X,,ETAPA 2,Ímola,,,,,,,
+Etapa 4,"Qualy 18""",05/02/26,Espanha,,3,Brasil,FORA,X,,ETAPA 3,Japão,,,,,,,
+Etapa 5,"Qualy 18""",12/02/26,Catar,,4,Áustria,,,,ETAPA 4,Mônaco,,,,,,,
+Etapa 6,Sprint,26/02/26,Mèxico,,5,Japão,,,,ETAPA 5,Áustria,,,,,,,
+Etapa 7,"Qualy 18""",05/03/26,Austrália,,6,Monza,FORA,X,,ETAPA 6,Austrália,,,,,,,
+Etapa 8,"Qualy 18""",12/03/26,China,,7,Catar,,,,,,,,,,,,
+,,,,,8,Espanha,,,,,,,,,,,,
+,,,,,9,Inglaterra,,,,,,,,,,,,
+,,,,,10,Mônaco,,,,,,,,,,,,
+,,,,,11,Abu Dhabi,,X,,,,,,,,,,
+,,,,,12,Ímola,,,,,,,,,,,,
