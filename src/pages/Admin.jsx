@@ -2307,39 +2307,47 @@ function Admin() {
                                             }
                                         });
                                         
-                                        // Forçar sincronização do Supabase
+                                        // Forçar sincronização do Supabase.
+                                        // A Edge Function `sync-google-sheets` usa internamente a
+                                        // service_role pra escrever no banco, então o caller só
+                                        // precisa de UM JWT válido no Authorization. Se houver sessão
+                                        // Supabase Auth ativa usamos o access_token; senão caímos
+                                        // pra anon key (que também é JWT válido). Assim o login
+                                        // local do Admin (senha 1234) basta pra acionar a sync.
                                         const supabaseUrl = 'https://ueqfmjwdijaeawvxhdtp.supabase.co';
-                                        const { data: { session } } = await supabase.auth.getSession();
-                                        
-                                        if (session) {
-                                            // Sincronizar ambos os grids
-                                            const response = await fetch(`${supabaseUrl}/functions/v1/sync-google-sheets`, {
-                                                method: 'POST',
-                                                headers: {
-                                                    'Content-Type': 'application/json',
-                                                    'Authorization': `Bearer ${session.access_token}`
-                                                },
-                                                body: JSON.stringify({ 
-                                                    sheetType: 'classificacao',
-                                                    force: true,
-                                                    season: 20
-                                                })
-                                            });
-                                            
-                                            if (response.ok) {
-                                                alert('✅ Sincronização iniciada! Limpando cache e recarregando página em 3 segundos...\n\n⚠️ Se o nome ainda não atualizar, pressione Ctrl+Shift+R (ou Cmd+Shift+R no Mac) para limpar o cache do navegador.');
-                                                setTimeout(() => {
-                                                    // Forçar reload sem cache
-                                                    window.location.reload(true);
-                                                }, 3000);
-                                            } else {
-                                                const errorText = await response.text();
-                                                console.error('Erro na sincronização:', errorText);
-                                                alert('⚠️ Erro ao sincronizar. Recarregando página mesmo assim...\n\nPressione Ctrl+Shift+R para forçar atualização.');
-                                                setTimeout(() => window.location.reload(true), 1000);
-                                            }
+                                        const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVlcWZtandkaWphZWF3dnhoZHRwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1MjEzOTEsImV4cCI6MjA4MDA5NzM5MX0.b-y_prO5ffMuSOs7rUvrMru4SDN06BHqyMsbUIDDdJI';
+                                        let authToken = supabaseAnonKey;
+                                        try {
+                                            const { data: { session } } = await supabase.auth.getSession();
+                                            if (session?.access_token) authToken = session.access_token;
+                                        } catch (e) {
+                                            console.warn('getSession falhou, seguindo com anon key:', e);
+                                        }
+
+                                        const response = await fetch(`${supabaseUrl}/functions/v1/sync-google-sheets`, {
+                                            method: 'POST',
+                                            headers: {
+                                                'Content-Type': 'application/json',
+                                                'Authorization': `Bearer ${authToken}`,
+                                                'apikey': supabaseAnonKey,
+                                            },
+                                            body: JSON.stringify({
+                                                sheetType: 'classificacao',
+                                                force: true,
+                                                season: 20
+                                            })
+                                        });
+
+                                        if (response.ok) {
+                                            alert('✅ Sincronização iniciada! Limpando cache e recarregando página em 3 segundos...\n\n⚠️ Se o nome ainda não atualizar, pressione Ctrl+Shift+R (ou Cmd+Shift+R no Mac) para limpar o cache do navegador.');
+                                            setTimeout(() => {
+                                                // Forçar reload sem cache
+                                                window.location.reload(true);
+                                            }, 3000);
                                         } else {
-                                            alert('⚠️ Sessão expirada. Recarregando página para limpar cache local...\n\nPressione Ctrl+Shift+R para forçar atualização.');
+                                            const errorText = await response.text();
+                                            console.error('Erro na sincronização:', errorText);
+                                            alert(`⚠️ Erro ao sincronizar (HTTP ${response.status}). Recarregando página mesmo assim...\n\nPressione Ctrl+Shift+R para forçar atualização.`);
                                             setTimeout(() => window.location.reload(true), 1000);
                                         }
                                     } catch (error) {
