@@ -38,8 +38,11 @@ const PowerRankingObjetivos = lazy(() => import('./pages/PowerRankingObjetivos')
 const Inscricao = lazy(() => import('./pages/Inscricao'));
 const MotorhomeMaster = lazy(() => import('./pages/MotorhomeMaster'));
 const GeradorTop10 = lazy(() => import('./pages/GeradorTop10'));
+const GeradorVencedor = lazy(() => import('./pages/GeradorVencedor'));
 const Top10Snapshot = lazy(() => import('./pages/Top10Snapshot'));
 const Top10SnapshotList = lazy(() => import('./pages/Top10SnapshotList'));
+const WinnerSnapshot = lazy(() => import('./pages/WinnerSnapshot'));
+const WinnerSnapshotList = lazy(() => import('./pages/WinnerSnapshotList'));
 
 // Fallback enquanto a página lazy carrega
 const PageFallback = () => (
@@ -77,10 +80,13 @@ function App() {
                     <Route path="/admin/draft-import" element={<AdminDraftImport />} />
                     <Route path="/admin/power-ranking" element={<AdminPowerRanking />} />
                     <Route path="/admin/top10-artes" element={<GeradorTop10 />} />
+                    <Route path="/admin/vencedor-artes" element={<GeradorVencedor />} />
                     {/* Rotas usadas pelo Playwright/GitHub Action para gerar
                         os PNGs de TOP 10 servidos em public/highlights/. */}
                     <Route path="/snapshot/top10/list" element={<Top10SnapshotList />} />
                     <Route path="/snapshot/top10/:grid/:season/:round" element={<Top10Snapshot />} />
+                    <Route path="/snapshot/winner/list" element={<WinnerSnapshotList />} />
+                    <Route path="/snapshot/winner/:grid/:season/:round" element={<WinnerSnapshot />} />
                     <Route path="/standings" element={<Standings />} />
                     <Route path="/powerranking" element={<PowerRanking />} />
                     <Route path="/historicopowerranking" element={<HistoricoPowerRanking />} />

@@ -1,25 +1,6 @@
 #!/usr/bin/env node
 /**
- * Gera os PNGs de TOP 10 (1080×1500) para todas as etapas elegíveis,
- * usando Playwright + Chromium contra o `vite preview` rodando localmente.
- *
- * Fluxo:
- *  1. Abre /snapshot/top10/list, espera <body data-snapshot-list-ready>.
- *  2. Lê o JSON do <pre id="top10-list">.
- *  3. Para cada etapa, abre /snapshot/top10/:grid/:season/:round, espera
- *     <body data-snapshot-ready> e tira screenshot do
- *     #top10-snapshot-stage (1080×1500).
- *  4. Salva em public/highlights/<gpSlug>/top10-<grid>.png.
- *  5. Também escreve um manifest em public/highlights/top10-manifest.json
- *     com o conteúdo da listagem (consumido pela Home pra saber se o PNG
- *     existe e em qual caminho).
- *
- * Variáveis de ambiente esperadas:
- *  - PREVIEW_URL  (default: http://127.0.0.1:4173)
- *
- * O script *NÃO* faz fetch direto no Supabase: a fonte de verdade é a
- * própria página `/snapshot/top10/list`, que reusa `useLeagueData` (mesmo
- * cache que o usuário final consome).
+ * Gera PNGs de TOP 10 (1080×1500) e Vencedor (1080×1350) via Playwright.
  */
 
 import { chromium } from 'playwright';
@@ -28,10 +9,76 @@ import { dirname, resolve } from 'node:path';
 
 const PREVIEW_URL = process.env.PREVIEW_URL || 'http://127.0.0.1:4173';
 const OUTPUT_ROOT = resolve(process.cwd(), 'public/highlights');
-const MANIFEST_PATH = resolve(OUTPUT_ROOT, 'top10-manifest.json');
+const TOP10_MANIFEST_PATH = resolve(OUTPUT_ROOT, 'top10-manifest.json');
+const WINNER_MANIFEST_PATH = resolve(OUTPUT_ROOT, 'winner-manifest.json');
 
 const log = (...args) => console.log('[generate-highlights]', ...args);
 const err = (...args) => console.error('[generate-highlights]', ...args);
+
+async function loadStageList(page, listUrl, listSelector) {
+    await page.goto(listUrl, { waitUntil: 'networkidle', timeout: 60_000 });
+    await page.waitForSelector('body[data-snapshot-list-ready="true"]', { timeout: 60_000 });
+    const listText = await page.locator(listSelector).innerText();
+    return JSON.parse(listText);
+}
+
+async function captureStage(page, { url, stageSelector, filePath }) {
+    await page.goto(url, { waitUntil: 'networkidle', timeout: 60_000 });
+    await page.waitForSelector('body[data-snapshot-ready="true"]', { timeout: 60_000 });
+    await page.waitForTimeout(200);
+
+    const stageEl = await page.$(stageSelector);
+    if (!stageEl) throw new Error(`${stageSelector} não encontrado`);
+
+    await mkdir(dirname(filePath), { recursive: true });
+    await stageEl.screenshot({ path: filePath, type: 'png', omitBackground: false });
+}
+
+async function generateBatch(page, {
+    label,
+    listUrl,
+    listSelector,
+    buildUrl,
+    stageSelector,
+    buildFileName,
+    buildPublicPath,
+}) {
+    log(`Carregando lista ${label}…`);
+    let stages = [];
+    try {
+        stages = await loadStageList(page, listUrl, listSelector);
+    } catch (e) {
+        err(`Falha ao carregar lista ${label}:`, e.message);
+        return [];
+    }
+
+    if (!Array.isArray(stages) || stages.length === 0) {
+        log(`Nenhuma etapa elegível para ${label}.`);
+        return [];
+    }
+
+    log(`${label}: ${stages.length} etapa(s)`);
+    const generated = [];
+
+    for (const stage of stages) {
+        const url = buildUrl(stage);
+        const fileName = buildFileName(stage);
+        const filePath = resolve(OUTPUT_ROOT, stage.gpSlug, fileName);
+        log(`→ [${label}] ${url}`);
+        try {
+            await captureStage(page, { url, stageSelector, filePath });
+            log(`  ✓ ${filePath}`);
+            generated.push({
+                ...stage,
+                file: buildPublicPath(stage),
+            });
+        } catch (e) {
+            err(`Falha [${label}] ${url}:`, e.message);
+        }
+    }
+
+    return generated;
+}
 
 async function main() {
     log(`Preview URL: ${PREVIEW_URL}`);
@@ -43,101 +90,50 @@ async function main() {
     const context = await browser.newContext({
         viewport: { width: 1080, height: 1500 },
         deviceScaleFactor: 2,
-        // Locale brasileiro pra datas/decimais ficarem iguais ao app real.
         locale: 'pt-BR',
         timezoneId: 'America/Sao_Paulo',
     });
     const page = await context.newPage();
 
     page.on('pageerror', (e) => err('pageerror:', e.message));
-    page.on('console', (msg) => {
-        const type = msg.type();
-        if (type === 'error' || type === 'warning') {
-            log(`page.${type}:`, msg.text());
-        }
+
+    const top10Generated = await generateBatch(page, {
+        label: 'TOP 10',
+        listUrl: `${PREVIEW_URL}/snapshot/top10/list`,
+        listSelector: '#top10-list',
+        buildUrl: (s) => `${PREVIEW_URL}/snapshot/top10/${s.grid}/${s.season}/${s.round}`,
+        stageSelector: '#top10-snapshot-stage',
+        buildFileName: (s) => `top10-${s.grid}.png`,
+        buildPublicPath: (s) => `/highlights/${s.gpSlug}/top10-${s.grid}.png`,
     });
 
-    log('Carregando lista de etapas elegíveis…');
-    await page.goto(`${PREVIEW_URL}/snapshot/top10/list`, {
-        waitUntil: 'networkidle',
-        timeout: 60_000,
+    const winnerGenerated = await generateBatch(page, {
+        label: 'Vencedor',
+        listUrl: `${PREVIEW_URL}/snapshot/winner/list`,
+        listSelector: '#winner-list',
+        buildUrl: (s) => `${PREVIEW_URL}/snapshot/winner/${s.grid}/${s.season}/${s.round}`,
+        stageSelector: '#winner-snapshot-stage',
+        buildFileName: (s) => `winner-${s.grid}.png`,
+        buildPublicPath: (s) => `/highlights/${s.gpSlug}/winner-${s.grid}.png`,
     });
-    await page.waitForSelector('body[data-snapshot-list-ready="true"]', { timeout: 60_000 });
-    const listText = await page.locator('#top10-list').innerText();
-    let stages = [];
-    try {
-        stages = JSON.parse(listText);
-    } catch (e) {
-        err('Falha ao parsear JSON da listagem:', e.message);
-        await browser.close();
-        process.exit(2);
-    }
-
-    if (!Array.isArray(stages) || stages.length === 0) {
-        log('Nenhuma etapa elegível ainda. Saindo sem gerar arts.');
-        await mkdir(OUTPUT_ROOT, { recursive: true });
-        await writeFile(MANIFEST_PATH, JSON.stringify({ stages: [], generatedAt: new Date().toISOString() }, null, 2));
-        await browser.close();
-        return;
-    }
-
-    log(`Etapas elegíveis: ${stages.length}`);
-    stages.forEach((s) => log(`  • ${s.grid} · S${s.season}R${s.round} · ${s.gp} (${s.gpSlug})`));
-
-    const generated = [];
-
-    for (const stage of stages) {
-        const url = `${PREVIEW_URL}/snapshot/top10/${stage.grid}/${stage.season}/${stage.round}`;
-        log(`→ ${url}`);
-        try {
-            await page.goto(url, { waitUntil: 'networkidle', timeout: 60_000 });
-            await page.waitForSelector('body[data-snapshot-ready="true"]', { timeout: 60_000 });
-
-            // 200ms de gordura extra pra qualquer animação tardia / fontes
-            // que tenham caído no cascade após o ready.
-            await page.waitForTimeout(200);
-
-            const stageEl = await page.$('#top10-snapshot-stage');
-            if (!stageEl) {
-                err(`#top10-snapshot-stage não encontrado para ${url}`);
-                continue;
-            }
-
-            const fileName = `top10-${stage.grid}.png`;
-            const filePath = resolve(OUTPUT_ROOT, stage.gpSlug, fileName);
-            await mkdir(dirname(filePath), { recursive: true });
-            await stageEl.screenshot({
-                path: filePath,
-                type: 'png',
-                omitBackground: false,
-            });
-            log(`  ✓ ${filePath}`);
-
-            generated.push({
-                ...stage,
-                file: `/highlights/${stage.gpSlug}/${fileName}`,
-            });
-        } catch (e) {
-            err(`Falha em ${url}:`, e.message);
-        }
-    }
 
     await mkdir(OUTPUT_ROOT, { recursive: true });
+    const generatedAt = new Date().toISOString();
+
     await writeFile(
-        MANIFEST_PATH,
-        JSON.stringify(
-            {
-                generatedAt: new Date().toISOString(),
-                stages: generated,
-            },
-            null,
-            2,
-        ),
+        TOP10_MANIFEST_PATH,
+        JSON.stringify({ generatedAt, stages: top10Generated }, null, 2),
     );
-    log(`Manifest salvo em ${MANIFEST_PATH}`);
+    await writeFile(
+        WINNER_MANIFEST_PATH,
+        JSON.stringify({ generatedAt, stages: winnerGenerated }, null, 2),
+    );
+
+    log(`Manifest TOP 10: ${TOP10_MANIFEST_PATH}`);
+    log(`Manifest Vencedor: ${WINNER_MANIFEST_PATH}`);
 
     await browser.close();
-    log(`Done. ${generated.length}/${stages.length} arts geradas.`);
+    log(`Done. TOP10 ${top10Generated.length} · Vencedor ${winnerGenerated.length}`);
 }
 
 main().catch((e) => {

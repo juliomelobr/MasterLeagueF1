@@ -2534,6 +2534,17 @@ function Admin() {
                     >
                         🖼️ TOP 10
                     </button>
+                    <button
+                        className="adm-tab-btn"
+                        onClick={() => navigate('/admin/vencedor-artes')}
+                        style={{
+                            background: 'linear-gradient(135deg, #991B1B 0%, #F59E0B 100%)',
+                            color: 'white',
+                            border: 'none'
+                        }}
+                    >
+                        🏆 VENCEDOR
+                    </button>
                     <button 
                         className="adm-tab-btn"
                         onClick={() => navigate('/admin/sync')}
