@@ -1,0 +1,98 @@
+name: Gerar arts TOP 10
+
+on:
+  # Disparo manual pela UI do GitHub.
+  workflow_dispatch:
+  # Também roda em horário fixo todo dia. Como o sync da planilha
+  # rola via Edge Function quando alguém abre o site, na prática essa
+  # rotina diária garante que toda etapa nova ganhe arte sem depender
+  # de uma chamada manual.
+  schedule:
+    - cron: '0 6 * * *'   # 06:00 UTC (03:00 Brasília)
+    - cron: '0 18 * * *'  # 18:00 UTC (15:00 Brasília)
+  # Pode ser invocado por outro workflow (ex.: hook do sync).
+  workflow_call:
+
+# Só uma execução por vez para evitar dois pushes simultâneos no main.
+concurrency:
+  group: generate-top10-highlights
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  generate:
+    name: Renderiza PNGs e publica
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Instalar dependências
+        run: npm ci
+
+      - name: Instalar Playwright (Chromium)
+        run: npx playwright install --with-deps chromium
+
+      - name: Build de produção
+        run: npm run build
+        env:
+          # As envs do app (Supabase) precisam estar disponíveis no build
+          # porque o Vite incorpora `import.meta.env.VITE_*` no bundle.
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
+
+      - name: Servir build estático
+        # vite preview é leve e suficiente; rodamos em background.
+        run: |
+          nohup npx vite preview --host 127.0.0.1 --port 4173 --strictPort > preview.log 2>&1 &
+          echo "PREVIEW_PID=$!" >> $GITHUB_ENV
+
+      - name: Aguardar servidor de preview
+        run: |
+          for i in {1..30}; do
+            if curl -sSf http://127.0.0.1:4173 > /dev/null; then
+              echo "Preview server pronto"
+              exit 0
+            fi
+            sleep 1
+          done
+          echo "Preview server não respondeu"
+          tail -n 100 preview.log || true
+          exit 1
+
+      - name: Gerar arts TOP 10
+        run: node scripts/generate-highlights.mjs
+        env:
+          PREVIEW_URL: http://127.0.0.1:4173
+
+      - name: Encerrar preview
+        if: always()
+        run: |
+          if [ -n "${PREVIEW_PID:-}" ]; then
+            kill "$PREVIEW_PID" || true
+          fi
+
+      - name: Commit & push se houver mudanças
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git add public/highlights
+          if git diff --staged --quiet; then
+            echo "Sem mudanças nas arts."
+            exit 0
+          fi
+          git commit -m "chore(top10): atualiza arts do TOP 10 [skip ci]"
+          git push

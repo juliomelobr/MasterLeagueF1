@@ -11,7 +11,10 @@ import {
 } from '../utils/seasonLifecycle';
 import { fetchGoogleSheetCsvText } from '../utils/fetchGoogleSheetCsv';
 import Papa from 'papaparse';
+import { toPng } from 'html-to-image';
 import Footer from '../components/Footer';
+import Top10Art, { slugify as slugifyGp } from '../components/Top10Art';
+import { useTop10Manifest, getTop10PngPath } from '../hooks/useTop10Manifest';
 
 // URL do CSV de Notícias - SUBSTITUA PELA URL DA SUA PLANILHA
 // Para obter a URL: Compartilhar > Qualquer pessoa com o link > Publicar na web > CSV
@@ -292,6 +295,238 @@ const getTeamLogo = (teamName, gridType = null, isDraft = false) => {
     return fallback;
 };
 
+/**
+ * Wrapper que só monta o Top10Art quando entra (ou está perto de entrar) no
+ * viewport. Mantém o carrossel leve mesmo com dezenas de etapas, já que cada
+ * arte traz ~30 imagens (fotos dos pilotos, logos das equipes, bandeira etc).
+ */
+const LazyTop10Art = (props) => {
+    const placeholderRef = useRef(null);
+    const [visible, setVisible] = useState(false);
+
+    useEffect(() => {
+        if (visible) return undefined;
+        const el = placeholderRef.current;
+        if (!el) return undefined;
+        if (typeof IntersectionObserver === 'undefined') {
+            setVisible(true);
+            return undefined;
+        }
+        const observer = new IntersectionObserver((entries) => {
+            if (entries.some((entry) => entry.isIntersecting)) {
+                setVisible(true);
+                observer.disconnect();
+            }
+        }, { rootMargin: '400px 600px' });
+        observer.observe(el);
+        return () => observer.disconnect();
+    }, [visible]);
+
+    if (visible) return <Top10Art {...props} />;
+    return <div ref={placeholderRef} className={`top10-live-art-placeholder ${props.className || ''}`.trim()} />;
+};
+
+/**
+ * Lightbox para a arte ao vivo. Renderiza o Top10Art em escala maior dentro
+ * de um overlay e oferece um botão "Baixar PNG" que exporta o artboard real
+ * em 1080×1500 via html-to-image (mesmo fluxo do Gerador).
+ */
+const computeLightboxScale = () => {
+    if (typeof window === 'undefined') return 0.55;
+    // Reserva ~220px de altura para caption + botões e ~40px de respiro horizontal.
+    const w = window.innerWidth;
+    const h = window.innerHeight;
+    const byHeight = (h - 240) / 1500;
+    const byWidth = Math.min(w * 0.92, 760) / 1080;
+    return Math.max(0.18, Math.min(0.7, byHeight, byWidth));
+};
+
+const Top10LiveLightbox = ({
+    stages,
+    index,
+    rawLight,
+    rawCarreira,
+    tracks,
+    showControls,
+    onReveal,
+    onClose,
+    onPrev,
+    onNext,
+    pngPath,
+}) => {
+    const stage = stages[index];
+    const exportRef = useRef(null);
+    const [isExporting, setIsExporting] = useState(false);
+    const [statusMsg, setStatusMsg] = useState('');
+    const [modalScale, setModalScale] = useState(() => computeLightboxScale());
+
+    useEffect(() => {
+        const onResize = () => setModalScale(computeLightboxScale());
+        window.addEventListener('resize', onResize);
+        return () => window.removeEventListener('resize', onResize);
+    }, []);
+
+    if (!stage) return null;
+
+    const raw = stage.grid === 'carreira' ? rawCarreira : rawLight;
+    const label = stage.grid === 'carreira' ? 'CARREIRA' : 'LIGHT';
+    const gpClean = String(stage.gp || '').replace(/^GP\s+/i, '');
+    const gpSlugForFile = slugifyGp(stage.gp || `etapa-${stage.round}`);
+    const downloadFileName = `top10-${stage.grid}-${gpSlugForFile || `t${stage.season}-r${stage.round}`}.png`;
+
+    // Quando há PNG estático, baixar é apenas um <a download>, sem
+    // html-to-image. O usuário também pode usar botão direito → "Salvar
+    // imagem como" no <img>.
+    const handleDownloadFallback = async () => {
+        if (!exportRef.current || isExporting) return;
+        try {
+            setIsExporting(true);
+            setStatusMsg('Gerando PNG em alta resolução...');
+            if (typeof document !== 'undefined' && document.fonts?.ready) {
+                try { await document.fonts.ready; } catch { /* segue */ }
+            }
+            const targetWidth = 1080;
+            const targetHeight = 1500;
+            const dataUrl = await toPng(exportRef.current, {
+                backgroundColor: '#03060f',
+                pixelRatio: 2,
+                cacheBust: true,
+                width: targetWidth,
+                height: targetHeight,
+                canvasWidth: targetWidth,
+                canvasHeight: targetHeight,
+                style: {
+                    transform: 'none',
+                    position: 'static',
+                    top: 'auto',
+                    left: 'auto',
+                    margin: '0',
+                    boxShadow: 'none',
+                    width: `${targetWidth}px`,
+                    height: `${targetHeight}px`,
+                },
+            });
+            const link = document.createElement('a');
+            link.href = dataUrl;
+            link.download = downloadFileName;
+            link.click();
+            setStatusMsg('PNG salvo no seu computador.');
+        } catch (error) {
+            setStatusMsg(`Erro ao gerar PNG: ${error.message || error}`);
+        } finally {
+            setIsExporting(false);
+        }
+    };
+
+    const stageStyle = pngPath
+        ? {
+            width: `${1080 * modalScale}px`,
+            height: `${1500 * modalScale}px`,
+        }
+        : {
+            width: `${1080 * modalScale}px`,
+            height: `${1500 * modalScale}px`,
+        };
+
+    return (
+        <div className="highlight-lightbox top10-live-lightbox" onClick={onClose}>
+            <div
+                className="top10-live-lightbox-content"
+                onClick={(event) => {
+                    event.stopPropagation();
+                    onReveal?.();
+                }}
+            >
+                <button
+                    className={`highlight-lightbox-close ${showControls ? '' : 'control-hidden'}`}
+                    onClick={onClose}
+                    aria-label="Fechar arte"
+                >
+                    &times;
+                </button>
+                {stages.length > 1 && (
+                    <>
+                        <button
+                            className={`highlight-lightbox-nav prev ${showControls ? '' : 'control-hidden'}`}
+                            onClick={(event) => { event.stopPropagation(); onPrev(); }}
+                            aria-label="Etapa anterior"
+                        >
+                            &#8249;
+                        </button>
+                        <button
+                            className={`highlight-lightbox-nav next ${showControls ? '' : 'control-hidden'}`}
+                            onClick={(event) => { event.stopPropagation(); onNext(); }}
+                            aria-label="Próxima etapa"
+                        >
+                            &#8250;
+                        </button>
+                    </>
+                )}
+
+                <div className="top10-live-lightbox-stage" style={stageStyle}>
+                    {pngPath ? (
+                        <img
+                            src={pngPath}
+                            alt={`TOP 10 ${label} · ${gpClean}`}
+                            className="top10-live-lightbox-art top10-live-lightbox-art-static"
+                            draggable={false}
+                        />
+                    ) : (
+                        <Top10Art
+                            gridType={stage.grid}
+                            season={stage.season}
+                            round={stage.round}
+                            rawData={raw}
+                            tracks={tracks}
+                            format="feed"
+                            scale={modalScale}
+                            artRef={exportRef}
+                            className="top10-live-lightbox-art"
+                        />
+                    )}
+                </div>
+
+                <div className={`top10-live-lightbox-caption ${showControls ? '' : 'control-hidden'}`}>
+                    {stages.length > 1 && (
+                        <small className="top10-live-lightbox-counter">
+                            {`${index + 1}/${stages.length}`}
+                        </small>
+                    )}
+                    <strong>{`${label} · ${gpClean || `Etapa ${stage.round}`}`}</strong>
+                    <span>{`Temporada ${stage.season} · Etapa ${stage.round}${stage.date ? ` · ${stage.date}` : ''}`}</span>
+                    <div className="top10-live-lightbox-actions">
+                        {pngPath ? (
+                            <a
+                                href={pngPath}
+                                download={downloadFileName}
+                                className="top10-live-lightbox-download"
+                                onClick={(event) => event.stopPropagation()}
+                            >
+                                Baixar PNG (1080×1500)
+                            </a>
+                        ) : (
+                            <button
+                                type="button"
+                                className="top10-live-lightbox-download"
+                                onClick={(event) => { event.stopPropagation(); handleDownloadFallback(); }}
+                                disabled={isExporting}
+                            >
+                                {isExporting ? 'Gerando PNG…' : 'Baixar PNG (1080×1500)'}
+                            </button>
+                        )}
+                        {pngPath && (
+                            <span className="top10-live-lightbox-hint">
+                                Dica: clique direito na imagem → “Salvar imagem como…”
+                            </span>
+                        )}
+                        {statusMsg && <span className="top10-live-lightbox-status">{statusMsg}</span>}
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+};
+
 const Countdown = ({ targetDate }) => {
     const [timeLeft, setTimeLeft] = useState(null);
     useEffect(() => {
@@ -401,6 +636,12 @@ function Home() {
     }, []);
 
     const { rawCarreira, rawLight, rawGridsT20, draftCarreira, draftLight, tracks, seasons, loading } = useLeagueData();
+    // Manifest com PNGs estáticos publicados pelo GitHub Action.
+    // Quando uma etapa tem PNG pronto, exibimos `<img>` (clique direito →
+    // "Salvar imagem como" funciona nativo e a qualidade fica perfeita,
+    // sem passar por html-to-image). Caso contrário, fallback pra
+    // renderização ao vivo do Top10Art.
+    const top10Manifest = useTop10Manifest();
 
     const [seasonCtx, setSeasonCtx] = useState(() => defaultSeasonContext());
     useEffect(() => {
@@ -423,6 +664,83 @@ function Home() {
 
     /** Carrossel + mini TOP 3 do hub: em pré-temporada usa somente fotos da pasta SML. */
     const hubCarouselSmlOnly = useMemo(() => isPreSeasonMode(seasonCtx || defaultSeasonContext()), [seasonCtx]);
+
+    /**
+     * Lista de etapas concluídas (TOP 10 ao vivo) por grid.
+     * Critérios:
+     *   - Data da etapa já passou (dia ≤ hoje).
+     *   - TOP 10 completo (10 pilotos diferentes registrados nas posições 1-10).
+     *   - Apenas a temporada MAIS RECENTE de cada grid.
+     * Ordenação: mais recente primeiro, intercalando Carreira antes de Light na
+     * mesma data, depois caindo para etapas anteriores.
+     */
+    const concludedTop10Stages = useMemo(() => {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const todayMs = today.getTime();
+
+        const parseStageDate = (dateStr) => {
+            if (!dateStr) return NaN;
+            if (String(dateStr).includes('/')) {
+                const [d, m, y] = String(dateStr).split('/');
+                if (!d || !m || !y) return NaN;
+                const fullYear = String(y).length === 2 ? `20${y}` : y;
+                const ts = new Date(`${fullYear}-${m}-${d}`).getTime();
+                return Number.isFinite(ts) ? ts : NaN;
+            }
+            const ts = new Date(dateStr).getTime();
+            return Number.isFinite(ts) ? ts : NaN;
+        };
+
+        const computeForGrid = (raw, grid) => {
+            if (!raw?.length) return [];
+            const map = new Map();
+            raw.forEach((row) => {
+                const s = parseInt(row[3], 10);
+                const r = parseInt(row[4], 10);
+                const pos = parseInt(row[8], 10);
+                if (Number.isNaN(s) || Number.isNaN(r)) return;
+                const key = `${s}-${r}`;
+                if (!map.has(key)) {
+                    map.set(key, {
+                        grid,
+                        season: s,
+                        round: r,
+                        gp: row[5],
+                        date: row[0],
+                        positions: new Set(),
+                    });
+                }
+                const entry = map.get(key);
+                if (!Number.isNaN(pos) && pos >= 1 && pos <= 10) entry.positions.add(pos);
+            });
+
+            const candidates = Array.from(map.values())
+                .map((entry) => ({ ...entry, ts: parseStageDate(entry.date) }))
+                .filter((entry) => {
+                    if (entry.positions.size < 10) return false;
+                    if (!Number.isFinite(entry.ts)) return false;
+                    return entry.ts <= todayMs;
+                });
+
+            if (!candidates.length) return [];
+            const latestSeason = Math.max(...candidates.map((c) => c.season));
+            return candidates.filter((c) => c.season === latestSeason);
+        };
+
+        const lightStages = computeForGrid(rawLight, 'light');
+        const carreiraStages = computeForGrid(rawCarreira, 'carreira');
+        const all = [...carreiraStages, ...lightStages];
+
+        all.sort((a, b) => {
+            if (b.ts !== a.ts) return b.ts - a.ts;
+            if (b.round !== a.round) return b.round - a.round;
+            if (a.grid !== b.grid) return a.grid === 'carreira' ? -1 : 1;
+            return 0;
+        });
+
+        return all;
+    }, [rawLight, rawCarreira]);
 
     const heroSeasonLabel = useMemo(() => {
         const s = Number(carouselPhotoSeason);
@@ -582,10 +900,10 @@ function Home() {
 
     useEffect(() => {
         if (selectedHighlightIndex == null) return;
-        if (selectedHighlightIndex >= highlightCards.length) {
+        if (selectedHighlightIndex >= concludedTop10Stages.length) {
             setSelectedHighlightIndex(null);
         }
-    }, [selectedHighlightIndex, highlightCards.length]);
+    }, [selectedHighlightIndex, concludedTop10Stages.length]);
 
     const scheduleHideHighlightControls = useCallback(() => {
         if (highlightControlsTimeoutRef.current) {
@@ -631,14 +949,14 @@ function Home() {
                 revealHighlightControls();
                 setSelectedHighlightIndex((idx) => {
                     if (idx === null) return idx;
-                    return (idx + 1) % highlightCards.length;
+                    return (idx + 1) % concludedTop10Stages.length;
                 });
             }
             if (event.key === 'ArrowLeft') {
                 revealHighlightControls();
                 setSelectedHighlightIndex((idx) => {
                     if (idx === null) return idx;
-                    return (idx - 1 + highlightCards.length) % highlightCards.length;
+                    return (idx - 1 + concludedTop10Stages.length) % concludedTop10Stages.length;
                 });
             }
         };
@@ -649,7 +967,7 @@ function Home() {
             window.removeEventListener('keydown', onKeyDown);
             document.body.style.overflow = previousOverflow;
         };
-    }, [selectedHighlightIndex, highlightCards.length, revealHighlightControls]);
+    }, [selectedHighlightIndex, concludedTop10Stages.length, revealHighlightControls]);
 
     const normalizeStr = (str) => str ? str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim().toUpperCase() : "";
     
@@ -833,10 +1151,10 @@ function Home() {
         return () => clearInterval(interval);
     }, [isPausedLight, loading, seasonDriversLightFull]);
 
-    // Auto-scroll manual-friendly (Mural de Destaques)
+    // Auto-scroll manual-friendly (TOP 10 ao vivo)
     useEffect(() => {
         const el = scrollRefHighlights.current;
-        if (!el || highlightCards.length === 0) return;
+        if (!el || concludedTop10Stages.length === 0) return;
 
         const interval = setInterval(() => {
             if (isPausedHighlights) return;
@@ -850,7 +1168,7 @@ function Home() {
         }, 45);
 
         return () => clearInterval(interval);
-    }, [highlightCards, isPausedHighlights]);
+    }, [concludedTop10Stages, isPausedHighlights]);
 
     // Buscar notícias do Google Sheets (feed de resumos na home)
     useEffect(() => {
@@ -2369,16 +2687,21 @@ function Home() {
                     </header>
 
                     <div className="hub-container">
-                        {/* DESTAQUES VISUAIS DA ETAPA */}
-                        <section className="hub-section news-feed-section">
+                        {/* TOP 10 AO VIVO — todas as etapas concluídas da temporada (mais recentes em destaque) */}
+                        <section className="hub-section top10-live-section">
                             <div className="section-header-hub">
-                                <h2>Mural de Destaques</h2>
+                                <h2>TOP 10 da Temporada</h2>
                                 <Link to="/noticias" className="btn-text">Portal de Notícias <ArrowRightIcon/></Link>
                             </div>
-                            <div className="gp-highlights-grid">
-                                {highlightCards.length > 0 ? (
+
+                            {concludedTop10Stages.length === 0 ? (
+                                <div className="top10-live-empty">
+                                    Aguardando o primeiro resultado completo da temporada para exibir o TOP 10.
+                                </div>
+                            ) : (
+                                <div className="gp-highlights-grid top10-live-grid">
                                     <div
-                                        className="gp-highlights-track"
+                                        className="gp-highlights-track top10-live-track"
                                         ref={scrollRefHighlights}
                                         onMouseEnter={() => setIsPausedHighlights(true)}
                                         onMouseLeave={() => setIsPausedHighlights(false)}
@@ -2392,39 +2715,62 @@ function Home() {
                                             }
                                         }}
                                     >
-                                        {[...highlightCards, ...highlightCards].map((card, idx) => (
-                                            <article
-                                                key={`${card.id}-${idx}`}
-                                                className="gp-highlight-card"
-                                                onClick={() => setSelectedHighlightIndex(idx % highlightCards.length)}
-                                            >
-                                                <div className="gp-highlight-image">
-                                                    <img src={card.image} alt={`${card.title} - ${card.category}`} loading="lazy" />
-                                                </div>
-                                                <div className="gp-highlight-overlay"></div>
-                                                <div className="gp-highlight-content">
-                                                    <span className="gp-highlight-category">{card.category}</span>
-                                                    <h3>{card.title}</h3>
-                                                    <p>{card.driver}</p>
-                                                </div>
-                                            </article>
-                                        ))}
+                                        {[...concludedTop10Stages, ...concludedTop10Stages].map((stage, idx) => {
+                                            const label = stage.grid === 'carreira' ? 'CARREIRA' : 'LIGHT';
+                                            const raw = stage.grid === 'carreira' ? rawCarreira : rawLight;
+                                            const realIndex = idx % concludedTop10Stages.length;
+                                            const pngPath = getTop10PngPath(top10Manifest, stage);
+                                            return (
+                                                <article
+                                                    key={`${stage.grid}-${stage.season}-${stage.round}-${idx}`}
+                                                    className="gp-highlight-card top10-live-card"
+                                                    onClick={() => setSelectedHighlightIndex(realIndex)}
+                                                    role="button"
+                                                    tabIndex={0}
+                                                    onKeyDown={(event) => {
+                                                        if (event.key === 'Enter' || event.key === ' ') {
+                                                            event.preventDefault();
+                                                            setSelectedHighlightIndex(realIndex);
+                                                        }
+                                                    }}
+                                                >
+                                                    <div className="top10-live-card-header">
+                                                        <span className={`top10-live-card-grid top10-live-card-grid--${stage.grid}`}>{label}</span>
+                                                        <span className="top10-live-card-gp">
+                                                            {String(stage.gp || '').replace(/^GP\s+/i, '')}
+                                                        </span>
+                                                        <span className="top10-live-card-meta">
+                                                            T{stage.season} · Etapa {stage.round}
+                                                            {stage.date ? ` · ${stage.date}` : ''}
+                                                        </span>
+                                                    </div>
+                                                    <div className="top10-live-art-wrap">
+                                                        {pngPath ? (
+                                                            <img
+                                                                src={pngPath}
+                                                                alt={`TOP 10 ${label} · ${String(stage.gp || '').replace(/^GP\s+/i, '')}`}
+                                                                className="top10-live-art top10-live-art-static"
+                                                                loading="lazy"
+                                                                draggable={false}
+                                                            />
+                                                        ) : (
+                                                            <LazyTop10Art
+                                                                gridType={stage.grid}
+                                                                season={stage.season}
+                                                                round={stage.round}
+                                                                rawData={raw}
+                                                                tracks={tracks}
+                                                                format="feed"
+                                                                className="top10-live-art"
+                                                            />
+                                                        )}
+                                                    </div>
+                                                </article>
+                                            );
+                                        })}
                                     </div>
-                                ) : (
-                                    <div style={{ color: '#94A3B8', padding: '12px' }}>Sem destaques publicados no momento.</div>
-                                )}
-                            </div>
-                            <div className="gp-highlights-footer">
-                                {news.length > 0 ? (
-                                    <span>{`Portal atualizado com ${news.length} notícia${news.length > 1 ? 's' : ''}`}</span>
-                                ) : (
-                                    <span>Novas matérias são publicadas no portal após cada etapa</span>
-                                )}
-                                {latestHighlightsGpSlug && (
-                                    <span>{`Atual automático: ${HIGHLIGHTS_CALENDAR.find((gp) => gp.slug === latestHighlightsGpSlug)?.category || latestHighlightsGpSlug}`}</span>
-                                )}
-                                <Link to="/noticias" className="btn-text">Ver cobertura completa <ArrowRightIcon/></Link>
-                            </div>
+                                </div>
+                            )}
                         </section>
                         
                         <section className="hub-section">
@@ -2636,57 +2982,26 @@ function Home() {
             )}
 
             {selectedDriver && <DriverModal driver={selectedDriver} gridType={selectedDriver.gridType || gridType} season={selectedSeason} onClose={() => setSelectedDriver(null)} teamColor={getTeamColor(selectedDriver.team, selectedDriver.gridType || gridType, selectedDriver.isDraft)} teamLogo={getTeamLogo(selectedDriver.team, selectedDriver.gridType || gridType, selectedDriver.isDraft)} />}
-            {selectedHighlightIndex !== null && highlightCards[selectedHighlightIndex] && (
-                <div className="highlight-lightbox" onClick={() => setSelectedHighlightIndex(null)}>
-                    <div
-                        className="highlight-lightbox-content"
-                        onClick={(event) => {
-                            event.stopPropagation();
-                            revealHighlightControls();
-                        }}
-                    >
-                        <button
-                            className={`highlight-lightbox-close ${showHighlightControls ? '' : 'control-hidden'}`}
-                            onClick={() => setSelectedHighlightIndex(null)}
-                            aria-label="Fechar imagem"
-                        >
-                            &times;
-                        </button>
-                        <button
-                            className={`highlight-lightbox-nav prev ${showHighlightControls ? '' : 'control-hidden'}`}
-                            onClick={() => {
-                                revealHighlightControls();
-                                setSelectedHighlightIndex((idx) => (idx - 1 + highlightCards.length) % highlightCards.length);
-                            }}
-                            aria-label="Imagem anterior"
-                        >
-                            &#8249;
-                        </button>
-                        <button
-                            className={`highlight-lightbox-nav next ${showHighlightControls ? '' : 'control-hidden'}`}
-                            onClick={() => {
-                                revealHighlightControls();
-                                setSelectedHighlightIndex((idx) => (idx + 1) % highlightCards.length);
-                            }}
-                            aria-label="Próxima imagem"
-                        >
-                            &#8250;
-                        </button>
-                        <img
-                            src={highlightCards[selectedHighlightIndex].image}
-                            alt={`${highlightCards[selectedHighlightIndex].title} - ${highlightCards[selectedHighlightIndex].category}`}
-                            className="highlight-lightbox-image"
-                            onClick={revealHighlightControls}
-                        />
-                        <div className="highlight-lightbox-caption">
-                            <small className={`highlight-lightbox-counter ${showHighlightControls ? '' : 'control-hidden'}`}>
-                                {`${selectedHighlightIndex + 1}/${highlightCards.length}`}
-                            </small>
-                            <strong>{highlightCards[selectedHighlightIndex].title}</strong>
-                            <span>{highlightCards[selectedHighlightIndex].driver}</span>
-                        </div>
-                    </div>
-                </div>
+            {selectedHighlightIndex !== null && concludedTop10Stages[selectedHighlightIndex] && (
+                <Top10LiveLightbox
+                    stages={concludedTop10Stages}
+                    index={selectedHighlightIndex}
+                    rawLight={rawLight}
+                    rawCarreira={rawCarreira}
+                    tracks={tracks}
+                    showControls={showHighlightControls}
+                    pngPath={getTop10PngPath(top10Manifest, concludedTop10Stages[selectedHighlightIndex])}
+                    onReveal={revealHighlightControls}
+                    onClose={() => setSelectedHighlightIndex(null)}
+                    onPrev={() => {
+                        revealHighlightControls();
+                        setSelectedHighlightIndex((idx) => (idx - 1 + concludedTop10Stages.length) % concludedTop10Stages.length);
+                    }}
+                    onNext={() => {
+                        revealHighlightControls();
+                        setSelectedHighlightIndex((idx) => (idx + 1) % concludedTop10Stages.length);
+                    }}
+                />
             )}
             <Footer />
         </div>

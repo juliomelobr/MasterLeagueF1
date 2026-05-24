@@ -6,6 +6,12 @@ function Navbar() {
     const navigate = useNavigate();
     const location = useLocation();
 
+    // Esconde a navbar em rotas de snapshot (usadas pelo Playwright para
+    // gerar PNGs do TOP 10 — não pode ter UI da Master League em volta).
+    if (location.pathname.startsWith('/snapshot/')) {
+        return null;
+    }
+
     const handleHomeNav = (view) => {
         setIsMenuOpen(false);
         navigate(`/?view=${view}`);

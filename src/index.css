@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap');
+﻿@import url('https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap');
 
 /* =========================================
    1. CONFIGURAÇÕES GLOBAIS & VARIÁVEIS
@@ -2045,6 +2045,670 @@ footer { background: var(--bg-dark-deeper); color: var(--text-on-dark); padding:
 
 .adm-tab-btn:hover { color: white; }
 .adm-tab-btn.active { color: var(--highlight-cyan); border-bottom-color: var(--highlight-cyan); }
+
+/* --- GERADOR TOP 10 --- */
+.top10-admin-page {
+    min-height: 100vh;
+    padding: 120px 5vw 60px;
+    background:
+        radial-gradient(circle at top left, rgba(6, 182, 212, 0.12), transparent 32%),
+        radial-gradient(circle at bottom right, rgba(139, 30, 63, 0.18), transparent 34%),
+        #020617;
+    color: #F8FAFC;
+}
+
+.top10-admin-header {
+    display: flex;
+    gap: 18px;
+    align-items: flex-start;
+    margin-bottom: 28px;
+}
+
+.top10-admin-header h1 {
+    margin: 4px 0 8px;
+    font-size: clamp(2rem, 5vw, 4rem);
+    line-height: 0.95;
+    text-transform: uppercase;
+}
+
+.top10-admin-header p {
+    margin: 0;
+    color: #94A3B8;
+}
+
+.top10-admin-header code,
+.top10-path-box code {
+    color: #7DD3FC;
+    word-break: break-all;
+}
+
+.top10-kicker {
+    color: var(--highlight-cyan);
+    font-weight: 900;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+}
+
+.top10-back-btn,
+.top10-secondary-btn,
+.top10-primary-btn {
+    border: 0;
+    border-radius: 12px;
+    cursor: pointer;
+    font-weight: 900;
+    text-transform: uppercase;
+    transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+.top10-back-btn {
+    background: rgba(15, 23, 42, 0.92);
+    color: #F8FAFC;
+    border: 1px solid rgba(255,255,255,0.12);
+    padding: 8px 12px;
+    font-size: 0.7rem;
+    letter-spacing: 0.06em;
+}
+
+.top10-primary-btn {
+    background: linear-gradient(135deg, #06B6D4, #2563EB);
+    color: #020617;
+    padding: 9px 12px;
+    font-size: 0.78rem;
+    letter-spacing: 0.05em;
+}
+
+.top10-secondary-btn {
+    background: rgba(255,255,255,0.08);
+    color: #F8FAFC;
+    border: 1px solid rgba(255,255,255,0.14);
+    padding: 8px 12px;
+    font-size: 0.78rem;
+    letter-spacing: 0.05em;
+}
+
+.top10-primary-btn:disabled,
+.top10-secondary-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.top10-back-btn:hover,
+.top10-secondary-btn:hover,
+.top10-primary-btn:hover {
+    transform: translateY(-1px);
+}
+
+.top10-admin-layout {
+    display: grid;
+    grid-template-columns: 220px 1fr;
+    gap: 18px;
+    align-items: start;
+}
+
+.top10-control-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    position: sticky;
+    top: 90px;
+    padding: 14px;
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 14px;
+    background: rgba(15, 23, 42, 0.86);
+    box-shadow: 0 16px 36px rgba(0,0,0,0.32);
+    font-size: 0.78rem;
+}
+
+.top10-control-panel label {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    color: #CBD5E1;
+    font-size: 0.65rem;
+    font-weight: 900;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.top10-control-panel select,
+.top10-control-panel input {
+    width: 100%;
+    padding: 7px 10px;
+    border: 1px solid rgba(148, 163, 184, 0.3);
+    border-radius: 8px;
+    outline: none;
+    background: #020617;
+    color: #F8FAFC;
+    font-size: 0.78rem;
+}
+
+.top10-path-box,
+.top10-status {
+    padding: 8px 10px;
+    border-radius: 10px;
+    background: rgba(2, 6, 23, 0.55);
+    border: 1px solid rgba(255,255,255,0.08);
+    font-size: 0.7rem;
+}
+
+.top10-path-box {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.top10-path-box strong {
+    font-size: 0.7rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.top10-path-box code {
+    font-size: 0.68rem;
+}
+
+.top10-status {
+    color: #E2E8F0;
+    line-height: 1.35;
+}
+
+.top10-generated-preview {
+    width: 100%;
+    border-radius: 14px;
+    border: 1px solid rgba(255,255,255,0.12);
+}
+
+.top10-preview-wrap {
+    overflow: auto;
+    padding-bottom: 20px;
+}
+
+.top10-artboard {
+    position: relative;
+    width: 1080px;
+    min-height: 1350px;
+    height: auto;
+    overflow: visible;
+    margin: 0 auto;
+    padding: 44px 40px 38px;
+    background: radial-gradient(circle at 70% 14%, rgba(255, 255, 255, 0.06), transparent 34%), #081226;
+    color: white;
+    border-radius: 24px;
+    box-shadow: 0 34px 100px rgba(0,0,0,0.55);
+    isolation: isolate;
+}
+
+.top10-artboard::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -3;
+    background:
+        radial-gradient(circle at 2px 2px, rgba(255,255,255,0.32) 1.6px, transparent 1.7px),
+        radial-gradient(circle at 2px 2px, rgba(0,0,0,0.13) 1.3px, transparent 1.5px);
+    background-size: 18px 18px, 18px 18px;
+    opacity: 0.2;
+}
+
+.top10-artboard::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -2;
+    background:
+        linear-gradient(116deg, transparent 0 22%, rgba(255,255,255,0.08) 22.4% 23%, transparent 23.4% 100%),
+        linear-gradient(336deg, transparent 0 72%, rgba(255,255,255,0.1) 72.3% 73%, transparent 73.2% 100%);
+}
+
+.top10-artboard.carreira {
+    background:
+        radial-gradient(circle at 75% 18%, rgba(255, 103, 0, 0.23), transparent 32%),
+        radial-gradient(circle at 13% 74%, rgba(175, 0, 55, 0.26), transparent 40%),
+        #0b1020;
+}
+
+.top10-artboard.light {
+    background:
+        radial-gradient(circle at 75% 18%, rgba(0, 199, 255, 0.23), transparent 32%),
+        radial-gradient(circle at 13% 74%, rgba(0, 81, 255, 0.26), transparent 40%),
+        #0b1020;
+}
+
+.top10-bg-orb {
+    position: absolute;
+    border-radius: 999px;
+    filter: blur(16px);
+    opacity: 0.42;
+    z-index: -1;
+}
+
+.top10-bg-orb.orb-a {
+    top: -120px;
+    right: -120px;
+    width: 420px;
+    height: 420px;
+    background: var(--top10-accent);
+}
+
+.top10-bg-orb.orb-b {
+    bottom: -160px;
+    left: -120px;
+    width: 500px;
+    height: 500px;
+    background: var(--top10-accent-2);
+}
+
+.top10-art-header,
+.top10-art-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.top10-art-header {
+    margin-bottom: 8px;
+}
+
+.top10-art-header-v2 {
+    align-items: flex-start;
+    gap: 18px;
+}
+
+.top10-gp-head {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.top10-gp-flag-wrap {
+    width: 64px;
+    height: 44px;
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1px solid rgba(255,255,255,0.3);
+    box-shadow: 0 6px 14px rgba(0,0,0,0.25);
+    background: rgba(255,255,255,0.08);
+}
+
+.top10-gp-flag,
+.top10-gp-flag-fallback {
+    width: 100%;
+    height: 100%;
+}
+
+.top10-gp-flag {
+    object-fit: cover;
+}
+
+.top10-gp-flag-fallback {
+    background: linear-gradient(135deg, #3B82F6, #1E293B);
+}
+
+.top10-gp-info span {
+    display: block;
+    font-size: 0.95rem;
+    color: #D1D5DB;
+    letter-spacing: 0.08em;
+    font-weight: 900;
+    text-transform: uppercase;
+}
+
+.top10-gp-info h2 {
+    margin: 2px 0 0;
+    font-size: 2.35rem;
+    line-height: 0.95;
+    font-weight: 1000;
+    text-transform: uppercase;
+}
+
+.top10-brand-head {
+    margin-left: auto;
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+}
+
+.top10-grid-logo {
+    width: 150px;
+    height: 84px;
+    object-fit: contain;
+}
+
+.top10-brand-copy {
+    text-align: right;
+}
+
+.top10-brand-copy small {
+    display: block;
+    text-transform: uppercase;
+    font-size: 0.82rem;
+    font-weight: 900;
+    color: #E2E8F0;
+    letter-spacing: 0.09em;
+}
+
+.top10-brand-copy strong {
+    display: block;
+    font-size: 4.35rem;
+    line-height: 0.9;
+    font-weight: 1000;
+    letter-spacing: -0.05em;
+}
+
+.top10-art-header span,
+.top10-race-title span,
+.top10-art-footer span {
+    color: #CBD5E1;
+    font-weight: 900;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+}
+
+.top10-art-header strong {
+    display: block;
+    font-size: 5.8rem;
+    line-height: 0.9;
+    letter-spacing: -0.08em;
+    text-transform: uppercase;
+}
+
+.top10-race-title {
+    margin-bottom: 12px;
+}
+
+.top10-race-title p {
+    margin: 6px 0 0;
+    color: #F59E0B;
+    font-size: 1.12rem;
+    font-weight: 900;
+}
+
+.top10-winner-strip,
+.top10-winner-strip-fixed {
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    gap: 12px;
+    margin-bottom: 12px;
+}
+
+.top10-podium-col {
+    flex: 1;
+    min-width: 0;
+}
+
+.top10-podium-col.center {
+    flex: 1.15;
+}
+
+.top10-podium-mini {
+    position: relative;
+    min-height: 292px;
+    padding: 14px 10px 12px;
+    border: 2px solid rgba(255,255,255,0.25);
+    border-radius: 18px;
+    overflow: hidden;
+    text-align: center;
+    box-shadow: 0 10px 28px rgba(0,0,0,0.35);
+}
+
+.top10-podium-mini.podium-empty {
+    background: rgba(15, 23, 42, 0.35);
+    border-style: dashed;
+}
+
+.top10-podium-mini.podium-style-1,
+.top10-podium-mini.podium-style-2 {
+    background: linear-gradient(170deg, #f59f0b 0%, #cc5c04 100%);
+}
+
+.top10-podium-mini.podium-style-3 {
+    background: linear-gradient(170deg, #0b74dc 0%, #0652a4 100%);
+}
+
+.top10-podium-mini.podium-style-1 {
+    min-height: 320px;
+    border-color: rgba(255,255,255,0.6);
+}
+
+.top10-podium-rank {
+    position: absolute;
+    left: 12px;
+    top: 8px;
+    font-size: 4rem;
+    line-height: 1;
+    font-weight: 1000;
+    color: #fff;
+    text-shadow: 0 6px 10px rgba(0,0,0,0.28);
+}
+
+.top10-podium-photo-wrap {
+    width: 178px;
+    height: 178px;
+    margin: 28px auto 0;
+    border-radius: 14px;
+    overflow: hidden;
+    border: 2px solid rgba(255,255,255,0.5);
+    background: rgba(2, 6, 23, 0.3);
+}
+
+.top10-podium-photo {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: top center;
+    border-radius: 0;
+}
+
+.top10-podium-mini.podium-style-1 .top10-podium-photo-wrap {
+    width: 194px;
+    height: 194px;
+}
+
+.top10-podium-card-bottom {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    padding: 12px 10px 10px;
+    background: linear-gradient(180deg, transparent 0%, rgba(2,6,23,0.35) 15%, rgba(2,6,23,0.8) 100%);
+}
+
+.top10-podium-card-bottom strong {
+    display: block;
+    font-size: 0.96rem;
+    line-height: 1.1;
+    font-weight: 900;
+    text-transform: uppercase;
+}
+
+.top10-podium-team {
+    margin-top: 8px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 6px;
+}
+
+.top10-podium-team-logo {
+    width: 34px;
+    height: 24px;
+    object-fit: contain;
+    flex-shrink: 0;
+}
+
+.top10-podium-team span {
+    font-size: 0.75rem;
+    color: #F8FAFC;
+    text-transform: uppercase;
+    font-weight: 800;
+    letter-spacing: 0.02em;
+}
+
+.top10-list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.top10-list-sheet {
+    margin-top: 6px;
+    background: rgba(255,255,255,0.95);
+    border: 2px solid rgba(255,255,255,0.9);
+    border-radius: 18px;
+    padding: 6px 8px;
+    box-shadow: 0 14px 30px rgba(0,0,0,0.28);
+}
+
+.top10-row {
+    display: grid;
+    grid-template-columns: 48px 54px 1fr 220px 64px;
+    gap: 10px;
+    align-items: center;
+    min-height: 56px;
+    padding: 4px 10px 4px 6px;
+    border-bottom: 1px solid #DBE2EC;
+    border-left: 0;
+    border-radius: 8px;
+    background: transparent;
+}
+
+.top10-row.pos-1,
+.top10-row.pos-2,
+.top10-row.pos-3 {
+    display: none;
+}
+
+.top10-position {
+    color: #020617;
+    font-size: 2.1rem;
+    font-weight: 1000;
+    text-align: center;
+}
+
+.top10-photo-ring {
+    width: 62px;
+    height: 62px;
+    border-radius: 999px;
+    padding: 3px;
+    background: var(--team-color);
+}
+
+.top10-photo-ring-sheet {
+    width: 46px;
+    height: 46px;
+}
+
+.top10-driver-photo {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: top center;
+    border-radius: 999px;
+    background: #020617;
+}
+
+.top10-driver-info strong {
+    display: block;
+    color: #0F172A;
+    font-size: 1.05rem;
+    line-height: 1;
+    letter-spacing: 0.01em;
+    text-transform: uppercase;
+}
+
+.top10-team-col {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    justify-self: start;
+    min-width: 0;
+}
+
+.top10-team-col span {
+    color: #111827;
+    font-weight: 800;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.top10-team-logo {
+    width: 36px;
+    height: 24px;
+    object-fit: contain;
+}
+
+.top10-points {
+    justify-self: end;
+    text-align: right;
+}
+
+.top10-points strong {
+    display: block;
+    color: #0F172A;
+    font-size: 1.55rem;
+    line-height: 0.9;
+    font-weight: 1000;
+}
+
+.top10-points span {
+    color: #F97316;
+    font-size: 0.66rem;
+    font-weight: 1000;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.top10-art-footer {
+    position: relative;
+    left: auto;
+    right: auto;
+    bottom: auto;
+    margin-top: 14px;
+    padding-top: 10px;
+    border-top: 1px solid rgba(255,255,255,0.18);
+}
+
+.top10-art-footer span {
+    font-size: 0.88rem;
+    color: #fff;
+    font-weight: 900;
+    letter-spacing: 0.08em;
+}
+
+@media (max-width: 820px) {
+    .top10-admin-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .top10-control-panel {
+        position: static;
+        max-width: 320px;
+    }
+
+    .top10-artboard {
+        transform-origin: top left;
+    }
+}
+
+@media (max-width: 720px) {
+    .top10-admin-page {
+        padding: 95px 16px 40px;
+    }
+
+    .top10-admin-header {
+        flex-direction: column;
+    }
+
+    .top10-preview-wrap {
+        margin: 0 -16px;
+        padding: 0 16px 20px;
+    }
+}
+
 
 /* Lista de Drivers */
 .adm-list-header {
@@ -9061,3 +9725,4 @@ footer { background: var(--bg-dark-deeper); color: var(--text-on-dark); padding:
   width: 100% !important;
   overflow: visible !important;
 }
+

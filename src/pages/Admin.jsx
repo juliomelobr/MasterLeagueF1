@@ -2515,6 +2515,17 @@ function Admin() {
                     >
                         📥 DRAFT
                     </button>
+                    <button
+                        className="adm-tab-btn"
+                        onClick={() => navigate('/admin/top10-artes')}
+                        style={{
+                            background: 'linear-gradient(135deg, #7C2D12 0%, #F97316 100%)',
+                            color: 'white',
+                            border: 'none'
+                        }}
+                    >
+                        🖼️ TOP 10
+                    </button>
                     <button 
                         className="adm-tab-btn"
                         onClick={() => navigate('/admin/sync')}
