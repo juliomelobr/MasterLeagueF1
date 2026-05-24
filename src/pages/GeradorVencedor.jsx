@@ -2,14 +2,14 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toPng } from 'html-to-image';
 import { useLeagueData } from '../hooks/useLeagueData';
-import WinnerArt, { computeWinnerArtData } from '../components/WinnerArt';
-import { GRID_THEME } from '../components/Top10Art';
+import WinnerArt, { computeWinnerArtData, getWinnerBaseImagePath } from '../components/WinnerArt';
 import '../index.css';
 import './GeradorVencedor.css';
 
 export default function GeradorVencedor() {
     const navigate = useNavigate();
     const artRef = useRef(null);
+    const uploadBlobRef = useRef(null);
     const { rawCarreira, rawLight, seasons, tracks, loading } = useLeagueData();
     const [gridType, setGridType] = useState('carreira');
     const [selectedSeason, setSelectedSeason] = useState('');
@@ -18,6 +18,15 @@ export default function GeradorVencedor() {
     const [isExporting, setIsExporting] = useState(false);
     const [generatedImage, setGeneratedImage] = useState('');
     const [exportFormat, setExportFormat] = useState('feed');
+
+    const [uploadedBaseUrl, setUploadedBaseUrl] = useState('');
+    const [publicBaseUrl, setPublicBaseUrl] = useState('');
+    const [publicBaseOk, setPublicBaseOk] = useState(false);
+
+    const [showCircuit, setShowCircuit] = useState(true);
+    const [showGpName, setShowGpName] = useState(true);
+    const [showMlLogo, setShowMlLogo] = useState(true);
+    const [showGridLogo, setShowGridLogo] = useState(false);
 
     const rawData = gridType === 'carreira' ? rawCarreira : rawLight;
     const safeSeasons = useMemo(() => {
@@ -67,11 +76,63 @@ export default function GeradorVencedor() {
         [rawData, selectedSeason, selectedRound, tracks, gridType],
     );
 
-    const { winner, gpSlug, fileName, targetPath, hasWinner } = artData;
-    const theme = GRID_THEME[gridType];
+    const {
+        winner,
+        gpSlug,
+        fileName,
+        targetPath,
+        baseImageStoragePath,
+        hasWinner,
+    } = artData;
+
+    const baseImageUrl = uploadedBaseUrl || (publicBaseOk ? publicBaseUrl : '');
+
+    // Tenta carregar arte base já salva em public/highlights/<gp>/winner-base-<grid>.png
+    useEffect(() => {
+        if (!gpSlug || !gridType) {
+            setPublicBaseOk(false);
+            setPublicBaseUrl('');
+            return undefined;
+        }
+        let cancelled = false;
+        const path = getWinnerBaseImagePath(gpSlug, gridType);
+        const url = `${path}?v=${Date.now()}`;
+        const img = new Image();
+        img.onload = () => {
+            if (!cancelled) {
+                setPublicBaseUrl(url);
+                setPublicBaseOk(true);
+            }
+        };
+        img.onerror = () => {
+            if (!cancelled) {
+                setPublicBaseUrl('');
+                setPublicBaseOk(false);
+            }
+        };
+        img.src = url;
+        return () => { cancelled = true; };
+    }, [gpSlug, gridType]);
+
+    const handleUploadBase = (event) => {
+        const file = event.target.files?.[0];
+        if (!file) return;
+        if (uploadBlobRef.current) {
+            URL.revokeObjectURL(uploadBlobRef.current);
+        }
+        const blobUrl = URL.createObjectURL(file);
+        uploadBlobRef.current = blobUrl;
+        setUploadedBaseUrl(blobUrl);
+        setStatus(`Arte base carregada: ${file.name}`);
+    };
+
+    useEffect(() => () => {
+        if (uploadBlobRef.current) URL.revokeObjectURL(uploadBlobRef.current);
+    }, []);
 
     const exportCanvas = async () => {
         if (!artRef.current) throw new Error('Preview da arte não encontrado.');
+        if (!baseImageUrl) throw new Error('Envie a arte base antes de exportar.');
         if (typeof document !== 'undefined' && document.fonts?.ready) {
             try { await document.fonts.ready; } catch { /* segue */ }
         }
@@ -102,14 +163,14 @@ export default function GeradorVencedor() {
     const handleDownload = async () => {
         try {
             setIsExporting(true);
-            setStatus('Gerando PNG...');
+            setStatus('Gerando PNG final (base + overlays)...');
             const dataUrl = await exportCanvas();
             setGeneratedImage(dataUrl);
             const link = document.createElement('a');
             link.href = dataUrl;
             link.download = fileName;
             link.click();
-            setStatus('PNG gerado para download.');
+            setStatus('PNG final salvo no seu computador.');
         } catch (error) {
             setStatus(`Erro ao gerar PNG: ${error.message}`);
         } finally {
@@ -127,8 +188,8 @@ export default function GeradorVencedor() {
                     <span className="top10-kicker">Admin</span>
                     <h1>Gerador do Vencedor</h1>
                     <p>
-                        Arte 4:5 do vencedor da etapa — automática por grid, temporada e etapa.
-                        Destino sugerido: <code>{targetPath}</code>
+                        Envie a arte base (Photoshop/export) e o sistema adiciona automaticamente
+                        o traçado do circuito, o nome do GP e a logo Master League na parte inferior.
                     </p>
                 </div>
             </div>
@@ -166,10 +227,52 @@ export default function GeradorVencedor() {
                         </select>
                     </label>
 
+                    <div className="winner-upload-box">
+                        <strong>Arte base (PNG/JPG)</strong>
+                        <input
+                            type="file"
+                            accept="image/png,image/jpeg,image/webp"
+                            onChange={handleUploadBase}
+                        />
+                        {uploadedBaseUrl && (
+                            <img className="winner-base-thumb" src={uploadedBaseUrl} alt="Preview da base" />
+                        )}
+                        {!uploadedBaseUrl && publicBaseOk && (
+                            <span className="winner-upload-hint">✓ Base encontrada em <code>{baseImageStoragePath}</code></span>
+                        )}
+                        {!uploadedBaseUrl && !publicBaseOk && gpSlug && (
+                            <span className="winner-upload-hint">
+                                Nenhuma base em disco. Envie acima ou salve em:
+                                <br />
+                                <code>{baseImageStoragePath}</code>
+                            </span>
+                        )}
+                    </div>
+
+                    <div className="winner-overlay-toggles">
+                        <strong>Overlays automáticos</strong>
+                        <label>
+                            <input type="checkbox" checked={showCircuit} onChange={(e) => setShowCircuit(e.target.checked)} />
+                            Traçado do circuito
+                        </label>
+                        <label>
+                            <input type="checkbox" checked={showGpName} onChange={(e) => setShowGpName(e.target.checked)} />
+                            Nome do GP (ex.: GP DO CANADÁ)
+                        </label>
+                        <label>
+                            <input type="checkbox" checked={showMlLogo} onChange={(e) => setShowMlLogo(e.target.checked)} />
+                            Logo Master League
+                        </label>
+                        <label>
+                            <input type="checkbox" checked={showGridLogo} onChange={(e) => setShowGridLogo(e.target.checked)} />
+                            Logo do grid (Carreira/Light)
+                        </label>
+                    </div>
+
                     <div className="top10-path-box">
                         <strong>Vencedor</strong>
                         <span>{hasWinner ? `${winner.name} · ${winner.team}` : 'Nenhum vencedor nesta etapa'}</span>
-                        <strong style={{ marginTop: 10 }}>Destino</strong>
+                        <strong style={{ marginTop: 10 }}>PNG final</strong>
                         <code>{targetPath}</code>
                     </div>
 
@@ -177,9 +280,9 @@ export default function GeradorVencedor() {
                         className="top10-primary-btn"
                         type="button"
                         onClick={handleDownload}
-                        disabled={loading || isExporting || !hasWinner}
+                        disabled={loading || isExporting || !hasWinner || !baseImageUrl}
                     >
-                        {isExporting ? 'Processando...' : 'Baixar PNG'}
+                        {isExporting ? 'Processando...' : 'Baixar PNG final'}
                     </button>
 
                     {status && <div className="top10-status">{status}</div>}
@@ -194,7 +297,12 @@ export default function GeradorVencedor() {
                         rawData={rawData}
                         tracks={tracks}
                         format={exportFormat}
+                        baseImageUrl={baseImageUrl}
                         artRef={artRef}
+                        showCircuit={showCircuit}
+                        showGpName={showGpName}
+                        showMlLogo={showMlLogo}
+                        showGridLogo={showGridLogo}
                     />
                 </main>
             </div>

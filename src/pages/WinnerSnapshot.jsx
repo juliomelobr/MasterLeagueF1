@@ -18,7 +18,7 @@ export default function WinnerSnapshot() {
         [rawData, season, round, tracks, grid],
     );
 
-    const dataReady = !loading && data.hasWinner;
+    const dataReady = !loading && data.hasWinner && Boolean(data.baseImagePath);
 
     useEffect(() => {
         if (!dataReady) return undefined;
