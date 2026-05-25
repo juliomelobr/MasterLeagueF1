@@ -226,8 +226,18 @@ export const useLeagueData = () => {
                             let flag = extractImgSrc(row[1]);
 
                             // PATCH 3: Fallback para circuitos dos EUA (Texas, Miami, Vegas, Austin)
-                            if (!flag && (name.includes('TEXAS') || name.includes('MIAMI') || name.includes('VEGAS') || name.includes('AUSTIN'))) {
-                                flag = 'https://flagcdn.com/w40/us.png';
+                            if (!flag && (name.includes('TEXAS') || name.includes('MIAMI') || name.includes('VEGAS') || name.includes('AUSTIN') || name.includes('EUA') || name.includes('ESTADOS UNIDOS'))) {
+                                flag = 'https://flagcdn.com/w80/us.png';
+                            }
+
+                            // PATCH 4: Fallback para circuitos da Itália (Monza, Imola, Emília-Romagna)
+                            if (!flag && (name.includes('IMOLA') || name.includes('MONZA') || name.includes('EMILIA') || name.includes('ITALIA') || name.includes('ITALY'))) {
+                                flag = 'https://flagcdn.com/w80/it.png';
+                            }
+
+                            // PATCH 5: Fallback Espanha (Barcelona, etc.)
+                            if (!flag && (name.includes('ESPANHA') || name.includes('SPAIN') || name.includes('BARCELONA'))) {
+                                flag = 'https://flagcdn.com/w80/es.png';
                             }
 
                             trackMap[name] = {

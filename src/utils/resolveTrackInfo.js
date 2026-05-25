@@ -13,10 +13,19 @@ export function normalizeTrackKey(gp = '') {
         .toUpperCase();
 }
 
+function normalizeAssetUrl(url) {
+    if (!url || typeof url !== 'string') return '';
+    let u = url.trim();
+    if (!u || u === 'null' || u === 'undefined') return '';
+    // Só rejeita placeholder genérico — URLs da F1 usam sufixo .../transform/.../image.png
+    if (u === 'image.png' || (!u.includes('://') && u.includes('image.png'))) return '';
+    if (u.startsWith('//')) u = `https:${u}`;
+    return u;
+}
+
 function isValidAssetUrl(url) {
-    if (!url || typeof url !== 'string') return false;
-    const u = url.trim().toLowerCase();
-    return u.startsWith('http') && !u.includes('image.png') && u !== 'null' && u !== 'undefined';
+    const u = normalizeAssetUrl(url).toLowerCase();
+    return u.startsWith('http');
 }
 
 /** Bandeiras confiáveis quando a planilha não bate ou a URL veio quebrada. */
@@ -96,6 +105,23 @@ function findViaAliases(key, tracks) {
     return null;
 }
 
+/** Busca traçado/bandeira em qualquer chave da planilha que combine com o GP. */
+function findFuzzyTrack(key, tracks) {
+    if (!tracks || !key) return null;
+    const entries = Object.entries(tracks);
+    for (const [tk, info] of entries) {
+        const tkNorm = normalizeTrackKey(tk);
+        if (!tkNorm) continue;
+        if (key === tkNorm || key.includes(tkNorm) || tkNorm.includes(key)) return info;
+    }
+    for (const [tk, info] of entries) {
+        const tkNorm = normalizeTrackKey(tk);
+        if (tkNorm.length < 4) continue;
+        if (key.includes(tkNorm.slice(0, 4)) || tkNorm.includes(key.slice(0, 4))) return info;
+    }
+    return null;
+}
+
 function resolveFlagByPattern(key) {
     for (const { test, flag } of FLAG_FALLBACKS) {
         if (test(key)) return flag;
@@ -110,10 +136,10 @@ export function resolveTrackInfo(gp = '', tracks = {}) {
     const key = normalizeTrackKey(gp);
     if (!key) return { flag: '', circuit: '', circuitName: '' };
 
-    const info = findDirectTrack(key, tracks) || findViaAliases(key, tracks) || {};
+    const info = findDirectTrack(key, tracks) || findViaAliases(key, tracks) || findFuzzyTrack(key, tracks) || {};
 
     let flag = pickFlag(key, info);
-    let circuit = isValidAssetUrl(info.circuit) ? info.circuit : '';
+    let circuit = isValidAssetUrl(info.circuit) ? normalizeAssetUrl(info.circuit) : '';
     let circuitName = info.circuitName || '';
 
     if ((!circuit || !circuitName) && tracks) {
@@ -121,7 +147,7 @@ export function resolveTrackInfo(gp = '', tracks = {}) {
         for (const alias of aliases) {
             const alt = tracks[normalizeTrackKey(alias)] || tracks[alias];
             if (!alt) continue;
-            if (!circuit && isValidAssetUrl(alt.circuit)) circuit = alt.circuit;
+            if (!circuit && isValidAssetUrl(alt.circuit)) circuit = normalizeAssetUrl(alt.circuit);
             if (!circuitName && alt.circuitName) circuitName = alt.circuitName;
             if (!flag && isValidAssetUrl(alt.flag)) flag = alt.flag;
         }

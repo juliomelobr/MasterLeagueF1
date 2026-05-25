@@ -224,7 +224,13 @@ export default function WinnerArt({
                 <div className="ml-winner-composite-overlays">
                     {showCircuit && circuitImage && (
                         <div className="ml-winner-overlay-circuit-wrap">
-                            <img className="ml-winner-overlay-circuit" src={circuitImage} alt="" />
+                            <img
+                                className="ml-winner-overlay-circuit"
+                                src={circuitImage}
+                                alt={circuitName || 'Circuito'}
+                                referrerPolicy="no-referrer"
+                                crossOrigin={circuitImage.includes('flagcdn.com') ? 'anonymous' : undefined}
+                            />
                         </div>
                     )}
                     {showCircuitName && circuitName && (

@@ -9,6 +9,7 @@ import { atualizarLancesComDefesaExpirada } from '../hooks/useAnalises';
 import AdminPowerRanking from './AdminPowerRanking';
 import AdminInscricoesPanel from '../components/AdminInscricoesPanel';
 import AdminSeasonLifecyclePanel from '../components/AdminSeasonLifecyclePanel';
+import { PRODUCTION_SITE_URL } from '../utils/urlHelpers';
 import '../index.css';
 
 function Admin() {
@@ -1759,7 +1760,7 @@ function Admin() {
     // Função auxiliar para enviar notificação WhatsApp
     const enviarNotificacaoAprovacao = async (email, nome, whatsapp, isExPiloto = false) => {
         // URL do site
-        const siteUrl = 'https://www.masterleaguef1.com.br';
+        const siteUrl = PRODUCTION_SITE_URL;
         const loginUrl = isExPiloto ? `${siteUrl}/ex-piloto/login` : `${siteUrl}/login`;
 
         // Mensagem diferente para pilotos ativos vs ex-pilotos
