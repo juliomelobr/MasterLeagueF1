@@ -23,10 +23,14 @@ export default function GeradorVencedor() {
     const [publicBaseUrl, setPublicBaseUrl] = useState('');
     const [publicBaseOk, setPublicBaseOk] = useState(false);
 
+    const [showMeta, setShowMeta] = useState(true);
+    const [showDriver, setShowDriver] = useState(true);
+    const [showFlag, setShowFlag] = useState(true);
+    const [showTeam, setShowTeam] = useState(true);
+    const [showTaglines, setShowTaglines] = useState(true);
     const [showCircuit, setShowCircuit] = useState(true);
     const [showGpName, setShowGpName] = useState(true);
     const [showMlLogo, setShowMlLogo] = useState(true);
-    const [showGridLogo, setShowGridLogo] = useState(false);
 
     const rawData = gridType === 'carreira' ? rawCarreira : rawLight;
     const safeSeasons = useMemo(() => {
@@ -250,22 +254,38 @@ export default function GeradorVencedor() {
                     </div>
 
                     <div className="winner-overlay-toggles">
-                        <strong>Overlays automáticos</strong>
+                        <strong>Dados variáveis (automáticos)</strong>
+                        <label>
+                            <input type="checkbox" checked={showMeta} onChange={(e) => setShowMeta(e.target.checked)} />
+                            Etapa, GP e Grid (topo esquerdo)
+                        </label>
+                        <label>
+                            <input type="checkbox" checked={showDriver} onChange={(e) => setShowDriver(e.target.checked)} />
+                            Vencedor + nome do piloto
+                        </label>
+                        <label>
+                            <input type="checkbox" checked={showFlag} onChange={(e) => setShowFlag(e.target.checked)} />
+                            Bandeira do GP / país
+                        </label>
+                        <label>
+                            <input type="checkbox" checked={showTeam} onChange={(e) => setShowTeam(e.target.checked)} />
+                            Equipe do piloto
+                        </label>
+                        <label>
+                            <input type="checkbox" checked={showTaglines} onChange={(e) => setShowTaglines(e.target.checked)} />
+                            Taglines ML (paixão / propósito)
+                        </label>
                         <label>
                             <input type="checkbox" checked={showCircuit} onChange={(e) => setShowCircuit(e.target.checked)} />
-                            Traçado do circuito
+                            Traçado do circuito (inferior)
                         </label>
                         <label>
                             <input type="checkbox" checked={showGpName} onChange={(e) => setShowGpName(e.target.checked)} />
-                            Nome do GP (ex.: GP DO CANADÁ)
+                            Nome do GP (inferior)
                         </label>
                         <label>
                             <input type="checkbox" checked={showMlLogo} onChange={(e) => setShowMlLogo(e.target.checked)} />
-                            Logo Master League
-                        </label>
-                        <label>
-                            <input type="checkbox" checked={showGridLogo} onChange={(e) => setShowGridLogo(e.target.checked)} />
-                            Logo do grid (Carreira/Light)
+                            Logo Master League (inferior)
                         </label>
                     </div>
 
@@ -299,10 +319,14 @@ export default function GeradorVencedor() {
                         format={exportFormat}
                         baseImageUrl={baseImageUrl}
                         artRef={artRef}
+                        showMeta={showMeta}
+                        showDriver={showDriver}
+                        showFlag={showFlag}
+                        showTeam={showTeam}
+                        showTaglines={showTaglines}
                         showCircuit={showCircuit}
                         showGpName={showGpName}
                         showMlLogo={showMlLogo}
-                        showGridLogo={showGridLogo}
                     />
                 </main>
             </div>
