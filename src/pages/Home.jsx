@@ -13,7 +13,7 @@ import { fetchGoogleSheetCsvText } from '../utils/fetchGoogleSheetCsv';
 import Papa from 'papaparse';
 import { toPng } from 'html-to-image';
 import Footer from '../components/Footer';
-import Top10Art, { slugify as slugifyGp } from '../components/Top10Art';
+import Top10Art, { slugify as slugifyGp, TOP10_FEED_EXPORT_HEIGHT } from '../components/Top10Art';
 import { useTop10Manifest, getTop10PngPath } from '../hooks/useTop10Manifest';
 
 // URL do CSV de Notícias - SUBSTITUA PELA URL DA SUA PLANILHA
@@ -329,14 +329,14 @@ const LazyTop10Art = (props) => {
 /**
  * Lightbox para a arte ao vivo. Renderiza o Top10Art em escala maior dentro
  * de um overlay e oferece um botão "Baixar PNG" que exporta o artboard real
- * em 1080×1500 via html-to-image (mesmo fluxo do Gerador).
+ * em 1080×1620 via html-to-image (mesmo fluxo do Gerador).
  */
 const computeLightboxScale = () => {
     if (typeof window === 'undefined') return 0.55;
     // Reserva ~220px de altura para caption + botões e ~40px de respiro horizontal.
     const w = window.innerWidth;
     const h = window.innerHeight;
-    const byHeight = (h - 240) / 1500;
+    const byHeight = (h - 240) / TOP10_FEED_EXPORT_HEIGHT;
     const byWidth = Math.min(w * 0.92, 760) / 1080;
     return Math.max(0.18, Math.min(0.7, byHeight, byWidth));
 };
@@ -386,7 +386,7 @@ const Top10LiveLightbox = ({
                 try { await document.fonts.ready; } catch { /* segue */ }
             }
             const targetWidth = 1080;
-            const targetHeight = 1500;
+            const targetHeight = TOP10_FEED_EXPORT_HEIGHT;
             const dataUrl = await toPng(exportRef.current, {
                 backgroundColor: '#03060f',
                 pixelRatio: 2,
@@ -421,11 +421,11 @@ const Top10LiveLightbox = ({
     const stageStyle = pngPath
         ? {
             width: `${1080 * modalScale}px`,
-            height: `${1500 * modalScale}px`,
+            height: `${TOP10_FEED_EXPORT_HEIGHT * modalScale}px`,
         }
         : {
             width: `${1080 * modalScale}px`,
-            height: `${1500 * modalScale}px`,
+            height: `${TOP10_FEED_EXPORT_HEIGHT * modalScale}px`,
         };
 
     return (
@@ -502,7 +502,7 @@ const Top10LiveLightbox = ({
                                 className="top10-live-lightbox-download"
                                 onClick={(event) => event.stopPropagation()}
                             >
-                                Baixar PNG (1080×1500)
+                                Baixar PNG (1080×1620)
                             </a>
                         ) : (
                             <button
@@ -511,7 +511,7 @@ const Top10LiveLightbox = ({
                                 onClick={(event) => { event.stopPropagation(); handleDownloadFallback(); }}
                                 disabled={isExporting}
                             >
-                                {isExporting ? 'Gerando PNG…' : 'Baixar PNG (1080×1500)'}
+                                {isExporting ? 'Gerando PNG…' : 'Baixar PNG (1080×1620)'}
                             </button>
                         )}
                         {pngPath && (

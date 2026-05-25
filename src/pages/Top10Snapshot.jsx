@@ -1,13 +1,13 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { useLeagueData } from '../hooks/useLeagueData';
-import Top10Art, { computeTop10ArtData } from '../components/Top10Art';
+import Top10Art, { computeTop10ArtData, TOP10_FEED_EXPORT_HEIGHT } from '../components/Top10Art';
 import './GeradorTop10.css';
 
 /**
  * Página dedicada para o Playwright (GitHub Action) tirar screenshot da
  * arte do TOP 10 sem nenhuma UI ao redor. Renderiza em escala 1:1
- * (1080×1500) e marca `body[data-snapshot-ready="true"]` quando todas as
+ * (1080×1620 com parceiros) e marca `body[data-snapshot-ready="true"]` quando todas as
  * fontes e imagens já estão pintadas.
  *
  * Rota: /snapshot/top10/:grid/:season/:round
@@ -104,7 +104,7 @@ export default function Top10Snapshot() {
         return (
             <div
                 data-snapshot-loading="true"
-                style={{ width: 1080, height: 1500, background: '#03060f' }}
+                style={{ width: 1080, height: TOP10_FEED_EXPORT_HEIGHT, background: '#03060f' }}
             />
         );
     }
@@ -114,7 +114,7 @@ export default function Top10Snapshot() {
             id="top10-snapshot-stage"
             style={{
                 width: 1080,
-                height: 1500,
+                height: TOP10_FEED_EXPORT_HEIGHT,
                 background: '#03060f',
                 position: 'relative',
                 margin: 0,

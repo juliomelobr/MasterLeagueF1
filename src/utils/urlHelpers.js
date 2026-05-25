@@ -3,6 +3,8 @@
  * Resolve problemas com localhost no PC vs IP da rede no celular
  */
 
+export const PRODUCTION_SITE_URL = 'https://masterleaguef1.com.br';
+
 /**
  * Obtém a URL base dinamicamente baseada na origem atual
  * Resolve o problema de localhost no PC vs IP da rede no celular
@@ -10,21 +12,15 @@
  * @returns {string} URL base (ex: http://192.168.0.15:5173 ou https://meusite.com)
  */
 export function getBaseUrl() {
-    // Sempre usar window.location.origin para garantir que funciona em qualquer ambiente
-    // Isso resolve o problema de localhost no PC vs IP da rede no celular
     const origin = window.location.origin;
     const port = window.location.port;
     
-    // Se tiver porta, incluir na URL (importante para desenvolvimento)
-    // Mas se já estiver no origin, não duplicar
     let baseUrl = origin;
     
-    // Se a porta não estiver no origin mas existir, adicionar
     if (port && !origin.includes(`:${port}`)) {
         baseUrl = `${window.location.protocol}//${window.location.hostname}:${port}`;
     }
     
-    // Log de debug (apenas em desenvolvimento)
     if (process.env.NODE_ENV === 'development') {
         console.log('🌐 Base URL detectada:', {
             origin,

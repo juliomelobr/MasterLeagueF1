@@ -12,13 +12,19 @@
    ============================================================ */
 .ml-top10-scaler {
     --ml-scale: 0.55;
+    --ml-partners-strip: 0px;
     position: relative;
     width: calc(1080px * var(--ml-scale));
-    height: calc(1500px * var(--ml-scale));
+    height: calc((1500px + var(--ml-partners-strip)) * var(--ml-scale));
     margin: 0 auto;
 }
 
+.ml-top10-scaler.format-feed.has-partners {
+    --ml-partners-strip: 120px;
+}
+
 .ml-top10-scaler.format-story {
+    --ml-partners-strip: 0px;
     height: calc(2080px * var(--ml-scale));
 }
 
@@ -72,6 +78,75 @@
 
 .ml-top10-artboard.format-story {
     height: 2080px;
+}
+
+.ml-top10-artboard.format-feed.has-partners {
+    height: 1620px;
+    display: flex;
+    flex-direction: column;
+}
+
+.ml-top10-core {
+    position: relative;
+    flex: 0 0 1500px;
+    width: 100%;
+    height: 1500px;
+    overflow: hidden;
+}
+
+.ml-top10-partners {
+    flex: 0 0 120px;
+    height: 120px;
+    margin-top: -36px;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    align-items: flex-start;
+    justify-content: center;
+    gap: 40px;
+    padding: 0 36px 8px;
+    background: linear-gradient(180deg, rgba(3, 6, 15, 0.96) 0%, #03060f 100%);
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    z-index: 4;
+    position: relative;
+}
+
+.ml-top10-partner-logo {
+    display: block;
+    flex: 0 0 auto;
+    width: auto;
+    height: 86px;
+    max-width: 220px;
+    object-fit: contain;
+    object-position: center;
+    filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.45));
+}
+
+.ml-top10-partner-logo--ubav {
+    height: 104px;
+    max-width: 154px;
+    margin-top: -14px;
+}
+
+.ml-top10-partner-logo--ml {
+    height: 92px;
+    max-width: 230px;
+    margin-top: -6px;
+}
+
+.ml-top10-partner-logo--f1vs {
+    height: 80px;
+    max-width: 180px;
+    margin-top: 0;
+}
+
+.ml-top10-partner-logo--saes {
+    height: 74px;
+    max-width: 178px;
+    margin-top: 2px;
+    opacity: 1;
+    /* Logo original é cinza escuro — força branco puro no fundo escuro */
+    filter: brightness(0) invert(1);
 }
 
 /* ============================================================
@@ -1056,6 +1131,7 @@
 
 .ml-top10-stat-time--label {
     font-family: "Big Shoulders Display", "Impact", system-ui, sans-serif;
+    font-style: italic;
     letter-spacing: 0.06em;
     color: #4ade80;
     text-shadow:
@@ -1124,6 +1200,7 @@
     font-family: "Big Shoulders Display", "Impact", system-ui, sans-serif;
     font-size: 36px;
     font-weight: 900;
+    font-style: italic;
     line-height: 0.95;
     color: #ffffff;
     letter-spacing: -0.01em;
@@ -1296,8 +1373,8 @@
 
 /*
  * Container que segura a arte renderizada em escala miniatura.
- * O Top10Art continua sendo um artboard 1080×1500 transformado
- * via --ml-scale, então a altura é definida em função da escala.
+ * O Top10Art continua sendo um artboard 1080×1500 (core) + faixa de parceiros
+ * transformado via --ml-scale, então a altura é definida em função da escala.
  */
 .top10-live-art-wrap {
     position: relative;
@@ -1315,8 +1392,9 @@
 .top10-live-card .top10-live-art,
 .top10-live-card .top10-live-art-placeholder {
     --ml-scale: 0.272;
+    --ml-partners-strip: 120px;
     width: calc(1080px * var(--ml-scale));
-    height: calc(1500px * var(--ml-scale));
+    height: calc((1500px + var(--ml-partners-strip)) * var(--ml-scale));
     margin: 0 auto;
 }
 
@@ -1327,7 +1405,7 @@
  */
 .top10-live-card .top10-live-art-static {
     width: calc(1080px * 0.272);
-    height: calc(1500px * 0.272);
+    height: calc(1620px * 0.272);
     margin: 0 auto;
     object-fit: contain;
     object-position: center;
@@ -1435,7 +1513,7 @@
     overflow: visible;
 }
 
-/* Container da arte. As dimensões reais (1080*scale x 1500*scale)
+/* Container da arte. As dimensões reais (1080*scale x 1620*scale)
    são injetadas via inline style pelo JS, em função do viewport. */
 .top10-live-lightbox-stage {
     flex: 0 0 auto;

@@ -2,9 +2,29 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toPng } from 'html-to-image';
 import { useLeagueData } from '../hooks/useLeagueData';
-import WinnerArt, { computeWinnerArtData, getWinnerBaseImagePath } from '../components/WinnerArt';
+import WinnerArt, {
+    computeWinnerArtData,
+    getWinnerBaseImagePath,
+    WINNER_FEED_EXPORT_HEIGHT,
+    WINNER_STORY_EXPORT_HEIGHT,
+} from '../components/WinnerArt';
 import '../index.css';
 import './GeradorVencedor.css';
+
+async function waitForNodeImages(node) {
+    if (!node) return;
+    const images = Array.from(node.querySelectorAll('img'));
+    await Promise.all(
+        images.map((img) => {
+            if (img.complete && img.naturalWidth > 0) return Promise.resolve();
+            return new Promise((resolve) => {
+                const done = () => resolve();
+                img.addEventListener('load', done, { once: true });
+                img.addEventListener('error', done, { once: true });
+            });
+        }),
+    );
+}
 
 export default function GeradorVencedor() {
     const navigate = useNavigate();
@@ -29,7 +49,7 @@ export default function GeradorVencedor() {
     const [showTeam, setShowTeam] = useState(true);
     const [showTaglines, setShowTaglines] = useState(true);
     const [showCircuit, setShowCircuit] = useState(true);
-    const [showGpName, setShowGpName] = useState(true);
+    const [showCircuitName, setShowCircuitName] = useState(true);
     const [showMlLogo, setShowMlLogo] = useState(true);
 
     const rawData = gridType === 'carreira' ? rawCarreira : rawLight;
@@ -140,28 +160,36 @@ export default function GeradorVencedor() {
         if (typeof document !== 'undefined' && document.fonts?.ready) {
             try { await document.fonts.ready; } catch { /* segue */ }
         }
-        const targetWidth = 1080;
-        const targetHeight = exportFormat === 'story' ? 1920 : 1350;
+        await waitForNodeImages(artRef.current);
 
-        return toPng(artRef.current, {
-            backgroundColor: '#03060f',
-            pixelRatio: 2,
-            cacheBust: true,
-            width: targetWidth,
-            height: targetHeight,
-            canvasWidth: targetWidth,
-            canvasHeight: targetHeight,
-            style: {
-                transform: 'none',
-                position: 'static',
-                top: 'auto',
-                left: 'auto',
-                margin: '0',
-                boxShadow: 'none',
-                width: `${targetWidth}px`,
-                height: `${targetHeight}px`,
-            },
-        });
+        const targetWidth = 1080;
+        const targetHeight = exportFormat === 'story' ? WINNER_STORY_EXPORT_HEIGHT : WINNER_FEED_EXPORT_HEIGHT;
+        const useBlobBase = baseImageUrl.startsWith('blob:');
+
+        artRef.current.classList.add('ml-winner-exporting');
+        try {
+            return await toPng(artRef.current, {
+                backgroundColor: '#03060f',
+                pixelRatio: 2,
+                cacheBust: !useBlobBase,
+                width: targetWidth,
+                height: targetHeight,
+                canvasWidth: targetWidth,
+                canvasHeight: targetHeight,
+                style: {
+                    transform: 'none',
+                    position: 'static',
+                    top: 'auto',
+                    left: 'auto',
+                    margin: '0',
+                    boxShadow: 'none',
+                    width: `${targetWidth}px`,
+                    height: `${targetHeight}px`,
+                },
+            });
+        } finally {
+            artRef.current.classList.remove('ml-winner-exporting');
+        }
     };
 
     const handleDownload = async () => {
@@ -176,7 +204,8 @@ export default function GeradorVencedor() {
             link.click();
             setStatus('PNG final salvo no seu computador.');
         } catch (error) {
-            setStatus(`Erro ao gerar PNG: ${error.message}`);
+            const msg = error?.message || String(error || 'Falha desconhecida');
+            setStatus(`Erro ao gerar PNG: ${msg}`);
         } finally {
             setIsExporting(false);
         }
@@ -226,7 +255,7 @@ export default function GeradorVencedor() {
                     <label>
                         Formato da arte
                         <select value={exportFormat} onChange={(event) => setExportFormat(event.target.value)}>
-                            <option value="feed">Feed 1080×1350 (4:5)</option>
+                            <option value="feed">Feed 1080×1470 (4:5)</option>
                             <option value="story">Story 1080×1920 (9:16)</option>
                         </select>
                     </label>
@@ -265,7 +294,7 @@ export default function GeradorVencedor() {
                         </label>
                         <label>
                             <input type="checkbox" checked={showFlag} onChange={(e) => setShowFlag(e.target.checked)} />
-                            Bandeira do GP / país
+                            Bandeira do GP (ao lado do nome)
                         </label>
                         <label>
                             <input type="checkbox" checked={showTeam} onChange={(e) => setShowTeam(e.target.checked)} />
@@ -280,8 +309,8 @@ export default function GeradorVencedor() {
                             Traçado do circuito (inferior)
                         </label>
                         <label>
-                            <input type="checkbox" checked={showGpName} onChange={(e) => setShowGpName(e.target.checked)} />
-                            Nome do GP (inferior)
+                            <input type="checkbox" checked={showCircuitName} onChange={(e) => setShowCircuitName(e.target.checked)} />
+                            Nome do circuito (inferior)
                         </label>
                         <label>
                             <input type="checkbox" checked={showMlLogo} onChange={(e) => setShowMlLogo(e.target.checked)} />
@@ -325,7 +354,7 @@ export default function GeradorVencedor() {
                         showTeam={showTeam}
                         showTaglines={showTaglines}
                         showCircuit={showCircuit}
-                        showGpName={showGpName}
+                        showCircuitName={showCircuitName}
                         showMlLogo={showMlLogo}
                     />
                 </main>

@@ -2,13 +2,19 @@
 
 .ml-winner-scaler {
     --ml-winner-scale: 0.55;
+    --ml-winner-partners-strip: 0px;
     position: relative;
     width: calc(1080px * var(--ml-winner-scale));
-    height: calc(1350px * var(--ml-winner-scale));
+    height: calc((1350px + var(--ml-winner-partners-strip)) * var(--ml-winner-scale));
     margin: 0 auto;
 }
 
+.ml-winner-scaler.format-feed.has-partners {
+    --ml-winner-partners-strip: 120px;
+}
+
 .ml-winner-scaler.format-story {
+    --ml-winner-partners-strip: 0px;
     height: calc(1920px * var(--ml-winner-scale));
 }
 
@@ -42,6 +48,73 @@
     height: 1920px;
 }
 
+.ml-winner-artboard.format-feed.has-partners {
+    height: 1470px;
+    display: flex;
+    flex-direction: column;
+}
+
+.ml-winner-core {
+    position: relative;
+    flex: 0 0 1350px;
+    width: 100%;
+    height: 1350px;
+    overflow: hidden;
+}
+
+.ml-winner-partners {
+    flex: 0 0 120px;
+    height: 120px;
+    margin-top: -36px;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    align-items: flex-start;
+    justify-content: center;
+    gap: 40px;
+    padding: 0 36px 8px;
+    background: linear-gradient(180deg, rgba(3, 6, 15, 0.96) 0%, #03060f 100%);
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    z-index: 6;
+    position: relative;
+}
+
+.ml-winner-partner-logo {
+    display: block;
+    flex: 0 0 auto;
+    width: auto;
+    height: 86px;
+    max-width: 220px;
+    object-fit: contain;
+    object-position: center;
+    filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.45));
+}
+
+.ml-winner-partner-logo--ubav {
+    height: 104px;
+    max-width: 154px;
+    margin-top: -14px;
+}
+
+.ml-winner-partner-logo--ml {
+    height: 92px;
+    max-width: 230px;
+    margin-top: -6px;
+}
+
+.ml-winner-partner-logo--f1vs {
+    height: 80px;
+    max-width: 180px;
+    margin-top: 0;
+}
+
+.ml-winner-partner-logo--saes {
+    height: 74px;
+    max-width: 178px;
+    margin-top: 2px;
+    filter: brightness(0) invert(1);
+}
+
 .ml-winner-artboard--empty {
     display: grid;
     place-items: center;
@@ -61,7 +134,7 @@
     object-position: center center;
 }
 
-/* —— Meta superior esquerda (ETAPA · GP · GRID) —— */
+/* —— Meta superior esquerda (ETAPA · bandeira + GP · GRID) —— */
 .ml-winner-overlay-meta {
     position: absolute;
     top: 118px;
@@ -76,30 +149,42 @@
 
 .ml-winner-overlay-etapa {
     font-family: "Titillium Web", sans-serif;
-    font-size: 26px;
+    font-size: 32px;
     font-weight: 700;
     letter-spacing: 0.14em;
     text-transform: uppercase;
     color: rgba(248, 250, 252, 0.88);
-    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.65);
+    text-shadow:
+        0 2px 4px rgba(0, 0, 0, 0.75),
+        0 4px 14px rgba(0, 0, 0, 0.55);
 }
 
-.ml-winner-overlay-gp-top {
+.ml-winner-overlay-gp-row {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-top: 2px;
+}
+
+.ml-winner-overlay-gp-name {
     font-family: "Big Shoulders Display", sans-serif;
-    font-size: 52px;
+    font-size: 62px;
     font-weight: 900;
     font-style: italic;
     line-height: 0.95;
     letter-spacing: 0.03em;
     text-transform: uppercase;
     color: #ffffff;
-    text-shadow: 0 3px 12px rgba(0, 0, 0, 0.7);
+    text-shadow:
+        0 2px 4px rgba(0, 0, 0, 0.85),
+        0 6px 18px rgba(0, 0, 0, 0.65),
+        0 0 32px rgba(0, 0, 0, 0.35);
 }
 
 .ml-winner-overlay-grid-label {
     margin-top: 4px;
     font-family: "Titillium Web", sans-serif;
-    font-size: 22px;
+    font-size: 28px;
     font-weight: 700;
     letter-spacing: 0.18em;
     text-transform: uppercase;
@@ -107,7 +192,7 @@
     text-shadow: 0 2px 8px rgba(0, 0, 0, 0.6);
 }
 
-/* —— Bloco piloto (VENCEDOR · nome · bandeira · equipe) —— */
+/* —— Bloco piloto (VENCEDOR · nome · logo equipe · equipe) —— */
 .ml-winner-overlay-driver {
     position: absolute;
     left: 48px;
@@ -123,7 +208,7 @@
 
 .ml-winner-overlay-vencedor {
     font-family: "Big Shoulders Display", sans-serif;
-    font-size: 38px;
+    font-size: 46px;
     font-weight: 800;
     font-style: italic;
     letter-spacing: 0.12em;
@@ -149,7 +234,7 @@
 
 .ml-winner-overlay-name span {
     font-family: "Big Shoulders Display", sans-serif;
-    font-size: 72px;
+    font-size: 84px;
     font-weight: 900;
     font-style: italic;
     letter-spacing: 0.02em;
@@ -162,21 +247,46 @@
 
 .ml-winner-overlay-name .ml-winner-overlay-last {
     color: var(--team-color, #fff);
+    font-size: 90px;
 }
 
 .ml-winner-overlay-flag {
-    width: 44px;
-    height: 30px;
+    flex-shrink: 0;
+    width: 78px;
+    height: 52px;
     object-fit: cover;
-    border-radius: 3px;
-    margin-top: 8px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.45);
+    border-radius: 4px;
+    box-shadow:
+        0 4px 12px rgba(0, 0, 0, 0.5),
+        0 2px 6px rgba(0, 0, 0, 0.35);
+}
+
+.ml-winner-overlay-team-logo-wrap {
+    margin-top: 10px;
+    display: flex;
+    align-items: center;
+}
+
+.ml-winner-overlay-team-logo {
+    width: auto;
+    height: 68px;
+    max-width: 120px;
+    object-fit: contain;
+    filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.45));
+}
+
+.ml-winner-artboard.ml-winner-exporting .ml-winner-overlay-team-logo-wrap {
+    filter: none;
+}
+
+.ml-winner-artboard.ml-winner-exporting .ml-winner-overlay-team-logo {
+    filter: none;
 }
 
 .ml-winner-overlay-team {
-    margin-top: 6px;
+    margin-top: 4px;
     font-family: "Titillium Web", sans-serif;
-    font-size: 24px;
+    font-size: 30px;
     font-weight: 900;
     letter-spacing: 0.16em;
     text-transform: uppercase;
@@ -193,7 +303,7 @@
 
 .ml-winner-overlay-taglines span {
     font-family: "Titillium Web", sans-serif;
-    font-size: 13px;
+    font-size: 16px;
     font-weight: 700;
     letter-spacing: 0.2em;
     text-transform: uppercase;
@@ -201,7 +311,7 @@
     text-shadow: 0 1px 6px rgba(0, 0, 0, 0.55);
 }
 
-/* —— Inferior central: circuito → GP → logo ML —— */
+/* —— Inferior central: circuito → nome do circuito → logo ML —— */
 .ml-winner-composite-overlays {
     position: absolute;
     left: 50%;
@@ -219,38 +329,58 @@
     pointer-events: none;
 }
 
-.ml-winner-overlay-circuit {
+.ml-winner-overlay-circuit-wrap {
+    display: flex;
+    justify-content: center;
     width: min(500px, 90%);
+    filter:
+        drop-shadow(0 2px 6px rgba(0, 0, 0, 0.55))
+        drop-shadow(0 0 18px rgba(255, 255, 255, 0.4));
+}
+
+.ml-winner-overlay-circuit {
+    width: 100%;
     height: auto;
     max-height: 190px;
     object-fit: contain;
-    filter:
-        brightness(0) invert(1)
-        drop-shadow(0 0 14px rgba(255, 255, 255, 0.35));
+    filter: brightness(0) invert(1);
     opacity: 0.95;
 }
 
-.ml-winner-overlay-gp {
+.ml-winner-overlay-circuit-name {
     margin: 0;
-    font-family: "Big Shoulders Display", sans-serif;
-    font-size: 58px;
-    font-weight: 900;
-    font-style: italic;
-    line-height: 0.95;
-    letter-spacing: 0.04em;
+    font-family: "Titillium Web", sans-serif;
+    font-size: 34px;
+    font-weight: 800;
+    letter-spacing: 0.14em;
     text-transform: uppercase;
     text-align: center;
-    color: #ffffff;
+    color: rgba(248, 250, 252, 0.95);
     text-shadow:
-        0 2px 0 rgba(0, 0, 0, 0.85),
-        0 8px 24px rgba(0, 0, 0, 0.65);
+        0 2px 4px rgba(0, 0, 0, 0.85),
+        0 6px 18px rgba(0, 0, 0, 0.6);
+}
+
+.ml-winner-overlay-ml-wrap {
+    display: flex;
+    justify-content: center;
+    filter: drop-shadow(0 8px 22px rgba(0, 0, 0, 0.55));
 }
 
 .ml-winner-overlay-ml {
-    width: 220px;
+    width: 290px;
     height: auto;
     object-fit: contain;
-    filter: drop-shadow(0 8px 22px rgba(0, 0, 0, 0.55));
+}
+
+/* Durante export html-to-image: sem drop-shadow (evita falha silenciosa) */
+.ml-winner-artboard.ml-winner-exporting .ml-winner-overlay-circuit-wrap,
+.ml-winner-artboard.ml-winner-exporting .ml-winner-overlay-ml-wrap {
+    filter: none;
+}
+
+.ml-winner-artboard.ml-winner-exporting .ml-winner-overlay-flag {
+    box-shadow: none;
 }
 
 /* Admin panel */

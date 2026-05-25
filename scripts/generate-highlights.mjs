@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Gera PNGs de TOP 10 (1080×1500) e Vencedor (1080×1350) via Playwright.
+ * Gera PNGs de TOP 10 (1080×1620) e Vencedor (1080×1470) via Playwright.
  */
 
 import { chromium } from 'playwright';
@@ -8,6 +8,7 @@ import { mkdir, writeFile } from 'node:fs/promises';
 import { dirname, resolve } from 'node:path';
 
 const PREVIEW_URL = process.env.PREVIEW_URL || 'http://127.0.0.1:4173';
+const HIGHLIGHTS_TARGET = process.env.HIGHLIGHTS_TARGET || 'all';
 const OUTPUT_ROOT = resolve(process.cwd(), 'public/highlights');
 const TOP10_MANIFEST_PATH = resolve(OUTPUT_ROOT, 'top10-manifest.json');
 const WINNER_MANIFEST_PATH = resolve(OUTPUT_ROOT, 'winner-manifest.json');
@@ -83,12 +84,13 @@ async function generateBatch(page, {
 async function main() {
     log(`Preview URL: ${PREVIEW_URL}`);
     log(`Output dir: ${OUTPUT_ROOT}`);
+    log(`Target: ${HIGHLIGHTS_TARGET}`);
 
     const browser = await chromium.launch({
         args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage'],
     });
     const context = await browser.newContext({
-        viewport: { width: 1080, height: 1500 },
+        viewport: { width: 1080, height: 1620 },
         deviceScaleFactor: 2,
         locale: 'pt-BR',
         timezoneId: 'America/Sao_Paulo',
@@ -97,43 +99,54 @@ async function main() {
 
     page.on('pageerror', (e) => err('pageerror:', e.message));
 
-    const top10Generated = await generateBatch(page, {
-        label: 'TOP 10',
-        listUrl: `${PREVIEW_URL}/snapshot/top10/list`,
-        listSelector: '#top10-list',
-        buildUrl: (s) => `${PREVIEW_URL}/snapshot/top10/${s.grid}/${s.season}/${s.round}`,
-        stageSelector: '#top10-snapshot-stage',
-        buildFileName: (s) => `top10-${s.grid}.png`,
-        buildPublicPath: (s) => `/highlights/${s.gpSlug}/top10-${s.grid}.png`,
-    });
+    const shouldGenerateTop10 = HIGHLIGHTS_TARGET === 'all' || HIGHLIGHTS_TARGET === 'top10';
+    const shouldGenerateWinner = HIGHLIGHTS_TARGET === 'all' || HIGHLIGHTS_TARGET === 'winner';
 
-    const winnerGenerated = await generateBatch(page, {
-        label: 'Vencedor',
-        listUrl: `${PREVIEW_URL}/snapshot/winner/list`,
-        listSelector: '#winner-list',
-        buildUrl: (s) => `${PREVIEW_URL}/snapshot/winner/${s.grid}/${s.season}/${s.round}`,
-        stageSelector: '#winner-snapshot-stage',
-        buildFileName: (s) => `winner-${s.grid}.png`,
-        buildPublicPath: (s) => `/highlights/${s.gpSlug}/winner-${s.grid}.png`,
-    });
+    const top10Generated = shouldGenerateTop10
+        ? await generateBatch(page, {
+            label: 'TOP 10',
+            listUrl: `${PREVIEW_URL}/snapshot/top10/list`,
+            listSelector: '#top10-list',
+            buildUrl: (s) => `${PREVIEW_URL}/snapshot/top10/${s.grid}/${s.season}/${s.round}`,
+            stageSelector: '#top10-snapshot-stage',
+            buildFileName: (s) => `top10-${s.grid}.png`,
+            buildPublicPath: (s) => `/highlights/${s.gpSlug}/top10-${s.grid}.png`,
+        })
+        : null;
+
+    const winnerGenerated = shouldGenerateWinner
+        ? await generateBatch(page, {
+            label: 'Vencedor',
+            listUrl: `${PREVIEW_URL}/snapshot/winner/list`,
+            listSelector: '#winner-list',
+            buildUrl: (s) => `${PREVIEW_URL}/snapshot/winner/${s.grid}/${s.season}/${s.round}`,
+            stageSelector: '#winner-snapshot-stage',
+            buildFileName: (s) => `winner-${s.grid}.png`,
+            buildPublicPath: (s) => `/highlights/${s.gpSlug}/winner-${s.grid}.png`,
+        })
+        : null;
 
     await mkdir(OUTPUT_ROOT, { recursive: true });
     const generatedAt = new Date().toISOString();
 
-    await writeFile(
-        TOP10_MANIFEST_PATH,
-        JSON.stringify({ generatedAt, stages: top10Generated }, null, 2),
-    );
-    await writeFile(
-        WINNER_MANIFEST_PATH,
-        JSON.stringify({ generatedAt, stages: winnerGenerated }, null, 2),
-    );
+    if (top10Generated) {
+        await writeFile(
+            TOP10_MANIFEST_PATH,
+            JSON.stringify({ generatedAt, stages: top10Generated }, null, 2),
+        );
+    }
+    if (winnerGenerated) {
+        await writeFile(
+            WINNER_MANIFEST_PATH,
+            JSON.stringify({ generatedAt, stages: winnerGenerated }, null, 2),
+        );
+    }
 
-    log(`Manifest TOP 10: ${TOP10_MANIFEST_PATH}`);
-    log(`Manifest Vencedor: ${WINNER_MANIFEST_PATH}`);
+    if (top10Generated) log(`Manifest TOP 10: ${TOP10_MANIFEST_PATH}`);
+    if (winnerGenerated) log(`Manifest Vencedor: ${WINNER_MANIFEST_PATH}`);
 
     await browser.close();
-    log(`Done. TOP10 ${top10Generated.length} · Vencedor ${winnerGenerated.length}`);
+    log(`Done. TOP10 ${top10Generated?.length ?? 'skip'} · Vencedor ${winnerGenerated?.length ?? 'skip'}`);
 }
 
 main().catch((e) => {

@@ -1,8 +1,22 @@
 import { useEffect, useMemo, useState } from 'react';
+import { resolveTrackInfo } from '../utils/resolveTrackInfo';
 import '../pages/GeradorTop10.css';
 
 const POINTS_RACE = [25, 18, 15, 12, 10, 8, 6, 4, 2, 1];
 const POINTS_SPRINT = [8, 7, 6, 5, 4, 3, 2, 1];
+
+/** Faixa inferior de parceiros — não altera o core 1080×1500. */
+export const TOP10_PARTNERS_STRIP_HEIGHT = 120;
+export const TOP10_FEED_CORE_HEIGHT = 1500;
+export const TOP10_FEED_EXPORT_HEIGHT = TOP10_FEED_CORE_HEIGHT + TOP10_PARTNERS_STRIP_HEIGHT;
+export const TOP10_STORY_EXPORT_HEIGHT = 2080;
+
+export const TOP10_PARTNER_LOGOS = [
+    { src: '/partners/master-league.png', alt: 'Master League', className: 'ml-top10-partner-logo--ml' },
+    { src: '/partners/ubav.png', alt: 'UBAV', className: 'ml-top10-partner-logo--ubav' },
+    { src: '/partners/f1vs.png', alt: 'F1 VS', className: 'ml-top10-partner-logo--f1vs' },
+    { src: '/partners/saes-54es.png', alt: '54ES Design', className: 'ml-top10-partner-logo--saes' },
+];
 
 export const GRID_THEME = {
     carreira: {
@@ -255,12 +269,8 @@ export function computeTop10ArtData({ rawData, season, round, tracks, gridType }
     const gpSlug = slugify(raceInfo.gp || `etapa-${roundNum}`);
     const fileName = `top10-${gridType}.png`;
     const targetPath = `public/highlights/${gpSlug}/${fileName}`;
-    const trackKey = String(raceInfo.gp || '')
-        .normalize('NFD')
-        .replace(/[\u0300-\u036f]/g, '')
-        .trim()
-        .toUpperCase();
-    const gpFlag = tracks?.[trackKey]?.flag || '';
+    const trackData = resolveTrackInfo(raceInfo.gp, tracks);
+    const gpFlag = trackData.flag || '';
 
     const getByPos = (pos) => raceResults.find((d) => Number(d.pos) === pos) || null;
     const p1 = getByPos(1);
@@ -295,10 +305,11 @@ export function computeTop10ArtData({ rawData, season, round, tracks, gridType }
  *  - season, round: temporada e etapa que serão filtradas em rawData
  *  - rawData: array vindo de useLeagueData (rawCarreira ou rawLight)
  *  - tracks: mapa de pistas (para bandeira)
- *  - format: 'feed' (1080×1500) ou 'story' (1080×2080)
+ *  - format: 'feed' (1080×1620 com parceiros, core 1080×1500) ou 'story' (1080×2080)
  *  - scale: opcional, override do --ml-scale do CSS (ex.: 0.45)
  *  - artRef: ref opcional para o artboard (para export PNG)
  *  - className: classes extras para o wrapper externo
+ *  - showPartners: exibe faixa inferior de logos (somente format feed)
  */
 export default function Top10Art({
     gridType,
@@ -310,6 +321,7 @@ export default function Top10Art({
     scale,
     artRef,
     className = '',
+    showPartners = true,
 }) {
     const data = useMemo(
         () => computeTop10ArtData({ rawData, season, round, tracks, gridType }),
@@ -330,29 +342,32 @@ export default function Top10Art({
     } = data;
 
     const wrapperStyle = scale != null ? { '--ml-scale': scale } : undefined;
+    const partnersActive = showPartners && format === 'feed';
+    const partnersClass = partnersActive ? 'has-partners' : '';
 
     return (
         <div
-            className={`ml-top10-scaler format-${format} ${className}`.trim()}
+            className={`ml-top10-scaler format-${format} ${partnersClass} ${className}`.trim()}
             style={wrapperStyle}
         >
             <div
-                className={`ml-top10-artboard ${theme.className} format-${format}`}
+                className={`ml-top10-artboard ${theme.className} format-${format} ${partnersClass}`.trim()}
                 ref={artRef}
                 style={{ '--ml-accent': theme.accent, '--ml-accent-2': theme.accent2 }}
             >
-                <div className="ml-top10-bg" aria-hidden="true">
-                    <div className="ml-top10-bg-grid" />
-                    <div className="ml-top10-bg-diamonds-large" />
-                    <div className="ml-top10-bg-diamonds" />
-                    <div className="ml-top10-bg-dots" />
-                    <div className="ml-top10-bg-streak" />
-                    <div className="ml-top10-bg-noise" />
-                    <div className="ml-top10-bg-vignette" />
-                    <div className="ml-top10-bg-watermark">TOP 10</div>
-                </div>
+                <div className="ml-top10-core">
+                    <div className="ml-top10-bg" aria-hidden="true">
+                        <div className="ml-top10-bg-grid" />
+                        <div className="ml-top10-bg-diamonds-large" />
+                        <div className="ml-top10-bg-diamonds" />
+                        <div className="ml-top10-bg-dots" />
+                        <div className="ml-top10-bg-streak" />
+                        <div className="ml-top10-bg-noise" />
+                        <div className="ml-top10-bg-vignette" />
+                        <div className="ml-top10-bg-watermark">TOP 10</div>
+                    </div>
 
-                <div className="ml-top10-content">
+                    <div className="ml-top10-content">
                     <header className="ml-top10-header">
                         <div className="ml-top10-header-left">
                             <div className="ml-top10-flag-wrap">
@@ -459,7 +474,23 @@ export default function Top10Art({
                             )}
                         </section>
                     )}
+                    </div>
                 </div>
+
+                {partnersActive && (
+                    <footer className="ml-top10-partners" aria-label="Parceiros">
+                        {TOP10_PARTNER_LOGOS.map((logo) => (
+                            <img
+                                key={logo.src}
+                                className={`ml-top10-partner-logo ${logo.className || ''}`.trim()}
+                                src={logo.src}
+                                alt={logo.alt}
+                                crossOrigin="anonymous"
+                                draggable={false}
+                            />
+                        ))}
+                    </footer>
+                )}
             </div>
         </div>
     );

@@ -4,25 +4,27 @@ import {
     slugify,
     splitDriverName,
     getTeamColor,
+    getTeamLogo,
+    TOP10_PARTNER_LOGOS,
+    TOP10_PARTNERS_STRIP_HEIGHT,
 } from './Top10Art';
+import { formatGpDisplayName, formatCountryName } from '../utils/gpDisplayName';
+import { resolveTrackInfo } from '../utils/resolveTrackInfo';
 import '../pages/GeradorVencedor.css';
+
+export { formatGpDisplayName, formatCountryName };
 
 /** Logo principal do site (mesma usada em favicon / compartilhamento). */
 export const ML_BRAND_LOGO = '/brand/master-league-og.png';
 
+/** Core 1080×1350 + faixa de parceiros (mesma do TOP 10). */
+export const WINNER_FEED_CORE_HEIGHT = 1350;
+export const WINNER_FEED_EXPORT_HEIGHT = WINNER_FEED_CORE_HEIGHT + TOP10_PARTNERS_STRIP_HEIGHT;
+export const WINNER_STORY_EXPORT_HEIGHT = 1920;
+
 export function getWinnerBaseImagePath(gpSlug, gridType) {
     if (!gpSlug || !gridType) return '';
     return `/highlights/${gpSlug}/winner-base-${gridType}.png`;
-}
-
-export function formatGpDisplayName(gp = '') {
-    const clean = String(gp || '').replace(/^GP\s+/i, '').trim();
-    if (!clean) return 'GRAND PRIX';
-    return `GP DO ${clean.toUpperCase()}`;
-}
-
-export function formatCountryName(gp = '') {
-    return String(gp || '').replace(/^GP\s+/i, '').trim().toUpperCase();
 }
 
 export function computeWinnerArtData({ rawData, season, round, tracks, gridType }) {
@@ -51,18 +53,15 @@ export function computeWinnerArtData({ rawData, season, round, tracks, gridType 
     const baseImagePath = getWinnerBaseImagePath(gpSlug, gridType);
     const baseImageStoragePath = `public/highlights/${gpSlug}/winner-base-${gridType}.png`;
 
-    const trackKey = String(winner?.gp || '')
-        .normalize('NFD')
-        .replace(/[\u0300-\u036f]/g, '')
-        .trim()
-        .toUpperCase();
-    const trackInfo = tracks?.[trackKey] || {};
+    const trackInfo = resolveTrackInfo(winner?.gp, tracks);
     const circuitImage = trackInfo.circuit || '';
+    const circuitName = trackInfo.circuitName || '';
     const gpFlag = trackInfo.flag || '';
     const gpDisplayName = formatGpDisplayName(winner?.gp);
     const countryName = formatCountryName(winner?.gp);
     const gridLabel = gridType === 'carreira' ? 'GRID CARREIRA' : 'GRID LIGHT';
     const teamColor = getTeamColor(winner?.team, gridType);
+    const teamLogo = getTeamLogo(winner?.team, gridType);
     const nameParts = splitDriverName(winner?.name || '');
 
     return {
@@ -74,11 +73,13 @@ export function computeWinnerArtData({ rawData, season, round, tracks, gridType 
         baseImagePath,
         baseImageStoragePath,
         circuitImage,
+        circuitName,
         gpFlag,
         gpDisplayName,
         countryName,
         gridLabel,
         teamColor,
+        teamLogo,
         nameParts,
         roundNum,
         hasWinner: Boolean(winner?.name && winner.name !== '-'),
@@ -106,8 +107,9 @@ export default function WinnerArt({
     showTeam = true,
     showTaglines = true,
     showCircuit = true,
-    showGpName = true,
+    showCircuitName = true,
     showMlLogo = true,
+    showPartners = true,
 }) {
     const data = useMemo(
         () => computeWinnerArtData({ rawData, season, round, tracks, gridType }),
@@ -118,17 +120,21 @@ export default function WinnerArt({
         winner,
         theme,
         circuitImage,
+        circuitName,
         gpFlag,
         gpDisplayName,
         countryName,
         gridLabel,
         teamColor,
+        teamLogo,
         nameParts,
         roundNum,
         hasWinner,
     } = data;
 
     const resolvedBase = baseImageUrl || data.baseImagePath;
+    const partnersActive = showPartners && format === 'feed';
+    const partnersClass = partnersActive ? 'has-partners' : '';
     const wrapperStyle = scale != null
         ? { '--ml-winner-scale': scale, '--team-color': teamColor, '--ml-accent': theme.accent, '--ml-accent-2': theme.accent2 }
         : { '--team-color': teamColor, '--ml-accent': theme.accent, '--ml-accent-2': theme.accent2 };
@@ -155,30 +161,41 @@ export default function WinnerArt({
 
     return (
         <div
-            className={`ml-winner-scaler format-${format} ${className}`.trim()}
+            className={`ml-winner-scaler format-${format} ${partnersClass} ${className}`.trim()}
             style={wrapperStyle}
         >
             <div
-                className={`ml-winner-artboard ml-winner-composite format-${format} ${theme.className}`}
+                className={`ml-winner-artboard ml-winner-composite format-${format} ${theme.className} ${partnersClass}`.trim()}
                 ref={artRef}
             >
-                <img
-                    className="ml-winner-composite-base"
-                    src={resolvedBase}
-                    alt={`Vencedor ${winner.name} · ${gpDisplayName}`}
-                    crossOrigin="anonymous"
-                />
+                <div className="ml-winner-core">
+                    <img
+                        className="ml-winner-composite-base"
+                        src={resolvedBase}
+                        alt={`Vencedor ${winner.name} · ${gpDisplayName}`}
+                        crossOrigin={resolvedBase.startsWith('blob:') ? undefined : 'anonymous'}
+                    />
 
-                {/* Meta superior esquerda: ETAPA · GP · GRID */}
+                {/* Meta superior: ETAPA · bandeira + GP · GRID */}
                 {showMeta && (
                     <div className="ml-winner-overlay-meta">
                         <span className="ml-winner-overlay-etapa">{`ETAPA ${roundNum}`}</span>
-                        <span className="ml-winner-overlay-gp-top">{gpDisplayName}</span>
+                        <div className="ml-winner-overlay-gp-row">
+                            {showFlag && gpFlag && (
+                                <img
+                                    className="ml-winner-overlay-flag"
+                                    src={gpFlag}
+                                    alt={countryName}
+                                    crossOrigin={gpFlag.includes('flagcdn.com') ? 'anonymous' : undefined}
+                                />
+                            )}
+                            <span className="ml-winner-overlay-gp-name">{gpDisplayName}</span>
+                        </div>
                         <span className="ml-winner-overlay-grid-label">{gridLabel}</span>
                     </div>
                 )}
 
-                {/* Bloco do piloto: VENCEDOR · nome · bandeira · equipe */}
+                {/* Bloco do piloto: VENCEDOR · nome · logo equipe · equipe */}
                 {showDriver && (
                     <div className="ml-winner-overlay-driver">
                         <span className="ml-winner-overlay-vencedor">VENCEDOR</span>
@@ -186,8 +203,10 @@ export default function WinnerArt({
                             <span>{nameParts.first}</span>
                             {nameParts.last && <span className="ml-winner-overlay-last">{nameParts.last}</span>}
                         </div>
-                        {showFlag && gpFlag && (
-                            <img className="ml-winner-overlay-flag" src={gpFlag} alt={countryName} />
+                        {showTeam && teamLogo && (
+                            <div className="ml-winner-overlay-team-logo-wrap">
+                                <img className="ml-winner-overlay-team-logo" src={teamLogo} alt={winner.team} />
+                            </div>
                         )}
                         {showTeam && winner.team && (
                             <span className="ml-winner-overlay-team">{String(winner.team).toUpperCase()}</span>
@@ -201,18 +220,38 @@ export default function WinnerArt({
                     </div>
                 )}
 
-                {/* Inferior central: circuito → GP → logo ML */}
+                {/* Inferior central: circuito → nome do circuito → logo ML */}
                 <div className="ml-winner-composite-overlays">
                     {showCircuit && circuitImage && (
-                        <img className="ml-winner-overlay-circuit" src={circuitImage} alt="" />
+                        <div className="ml-winner-overlay-circuit-wrap">
+                            <img className="ml-winner-overlay-circuit" src={circuitImage} alt="" />
+                        </div>
                     )}
-                    {showGpName && (
-                        <p className="ml-winner-overlay-gp">{gpDisplayName}</p>
+                    {showCircuitName && circuitName && (
+                        <p className="ml-winner-overlay-circuit-name">{circuitName.toUpperCase()}</p>
                     )}
                     {showMlLogo && (
-                        <img className="ml-winner-overlay-ml" src={ML_BRAND_LOGO} alt="Master League" />
+                        <div className="ml-winner-overlay-ml-wrap">
+                            <img className="ml-winner-overlay-ml" src={ML_BRAND_LOGO} alt="Master League" />
+                        </div>
                     )}
                 </div>
+                </div>
+
+                {partnersActive && (
+                    <footer className="ml-winner-partners" aria-label="Parceiros">
+                        {TOP10_PARTNER_LOGOS.map((logo) => (
+                            <img
+                                key={logo.src}
+                                className={`ml-winner-partner-logo ${(logo.className || '').replace('ml-top10-', 'ml-winner-')}`.trim()}
+                                src={logo.src}
+                                alt={logo.alt}
+                                crossOrigin="anonymous"
+                                draggable={false}
+                            />
+                        ))}
+                    </footer>
+                )}
             </div>
         </div>
     );

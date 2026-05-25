@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { useLeagueData } from '../hooks/useLeagueData';
-import WinnerArt, { computeWinnerArtData } from '../components/WinnerArt';
+import WinnerArt, { computeWinnerArtData, WINNER_FEED_EXPORT_HEIGHT } from '../components/WinnerArt';
 import './GeradorVencedor.css';
 
 /**
@@ -86,7 +86,7 @@ export default function WinnerSnapshot() {
         return (
             <div
                 data-snapshot-loading="true"
-                style={{ width: 1080, height: 1350, background: '#03060f' }}
+                style={{ width: 1080, height: WINNER_FEED_EXPORT_HEIGHT, background: '#03060f' }}
             />
         );
     }
@@ -96,7 +96,7 @@ export default function WinnerSnapshot() {
             id="winner-snapshot-stage"
             style={{
                 width: 1080,
-                height: 1350,
+                height: WINNER_FEED_EXPORT_HEIGHT,
                 background: '#03060f',
                 position: 'relative',
                 margin: 0,

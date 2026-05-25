@@ -344,7 +344,7 @@ serve(async (req) => {
       const whatsappFormatted = formatPhoneNumber(whatsapp);
       const nome = nomePiloto || 'Piloto';
       // Usar mensagem customizada se fornecida, senão usar mensagem padrão atualizada
-      const siteUrl = 'https://www.masterleaguef1.com.br';
+      const siteUrl = 'https://masterleaguef1.com.br';
       const loginUrl = `${siteUrl}/ex-piloto/login`;
       const mensagemPadrao = `✅ *ACESSO LIBERADO - MASTER LEAGUE F1*\n\nOlá ${nome},\n\nSeu acesso ao Painel do Piloto foi *APROVADO*!\n\n📋 *CADASTRE SUA SENHA E ACESSE:*\n\n🔗 Link direto: ${loginUrl}\n\n📝 *Passos:*\n\n1️⃣ Clique no link acima\n\n2️⃣ Digite seu e-mail:\n   ${email}\n\n3️⃣ Valide seu WhatsApp com o código que será enviado\n\n4️⃣ Crie sua senha de acesso\n\n5️⃣ Pronto! Você terá acesso ao seu painel histórico\n\n🏎️ Reveja a sua história na Master League F1`;
       const mensagem = mensagemCustomizada || mensagemPadrao;

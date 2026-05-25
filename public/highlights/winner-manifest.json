@@ -1,30 +1,6 @@
 {
-  "generatedAt": "2026-05-24T20:42:04.307Z",
+  "generatedAt": "2026-05-25T04:37:21.673Z",
   "stages": [
-    {
-      "grid": "carreira",
-      "season": 21,
-      "round": 6,
-      "gp": "Canadá",
-      "date": "21/05/26",
-      "winner": "Edvan Paiva",
-      "team": "McLaren",
-      "ts": 1779321600000,
-      "gpSlug": "canada",
-      "file": "/highlights/canada/winner-carreira.png"
-    },
-    {
-      "grid": "light",
-      "season": 21,
-      "round": 6,
-      "gp": "Canadá",
-      "date": "18/05/26",
-      "winner": "Lucas Mendonça",
-      "team": "Mercedes",
-      "ts": 1779062400000,
-      "gpSlug": "canada",
-      "file": "/highlights/canada/winner-light.png"
-    },
     {
       "grid": "carreira",
       "season": 21,
@@ -48,18 +24,6 @@
       "ts": 1778457600000,
       "gpSlug": "brasil",
       "file": "/highlights/brasil/winner-light.png"
-    },
-    {
-      "grid": "carreira",
-      "season": 21,
-      "round": 4,
-      "gp": "Azerbaijão",
-      "date": "07/05/26",
-      "winner": "Claudio Francisco",
-      "team": "McLaren",
-      "ts": 1778112000000,
-      "gpSlug": "azerbaijao",
-      "file": "/highlights/azerbaijao/winner-carreira.png"
     },
     {
       "grid": "light",

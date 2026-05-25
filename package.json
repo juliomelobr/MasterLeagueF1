@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
+    "deploy:cloudflare": "npm run build && wrangler deploy",
     "lint": "eslint .",
     "preview": "vite preview",
     "notify:defesas:dry": "node scripts/notificar_defesas_pendentes.js --dry-run",
@@ -39,7 +40,8 @@
     "globals": "^16.5.0",
     "playwright": "^1.49.0",
     "supabase": "^2.72.8",
-    "vite": "npm:rolldown-vite@7.2.5"
+    "vite": "npm:rolldown-vite@7.2.5",
+    "wrangler": "^4.94.0"
   },
   "overrides": {
     "vite": "npm:rolldown-vite@7.2.5",

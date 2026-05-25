@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { toPng } from 'html-to-image';
 import { supabase } from '../supabaseClient';
 import { useLeagueData } from '../hooks/useLeagueData';
-import Top10Art, { computeTop10ArtData, GRID_THEME } from '../components/Top10Art';
+import Top10Art, { computeTop10ArtData, GRID_THEME, TOP10_FEED_EXPORT_HEIGHT, TOP10_STORY_EXPORT_HEIGHT } from '../components/Top10Art';
 import '../index.css';
 import './GeradorTop10.css';
 
@@ -77,7 +77,7 @@ export default function GeradorTop10() {
             try { await document.fonts.ready; } catch { /* segue */ }
         }
         const targetWidth = 1080;
-        const targetHeight = exportFormat === 'story' ? 2080 : 1500;
+        const targetHeight = exportFormat === 'story' ? TOP10_STORY_EXPORT_HEIGHT : TOP10_FEED_EXPORT_HEIGHT;
 
         const dataUrl = await toPng(artRef.current, {
             backgroundColor: '#03060f',
