@@ -1,6 +1,16 @@
 {
-  "generatedAt": "2026-05-25T04:21:34.270Z",
+  "generatedAt": "2026-05-26T04:49:52.383Z",
   "stages": [
+    {
+      "grid": "light",
+      "season": 21,
+      "round": 7,
+      "gp": "México",
+      "gpSlug": "mexico",
+      "date": "25/05/26",
+      "ts": 1779667200000,
+      "file": "/highlights/mexico/top10-light.png"
+    },
     {
       "grid": "carreira",
       "season": 21,
