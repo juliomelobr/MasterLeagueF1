@@ -38,29 +38,29 @@ const RecordIcon = () => (<svg className="rh-icon-small" viewBox="0 0 24 24" fil
 const POINTS_RACE = [25, 18, 15, 12, 10, 8, 6, 4, 2, 1];
 const POINTS_SPRINT = [8, 7, 6, 5, 4, 3, 2, 1];
 // Fluxo operacional do mural:
-// - mantenha um bloco por GP em /public/highlights/gp-xxxx
+// - mantenha um bloco por GP em /public/highlights/xxxx
 // - a "corrida atual" é detectada automaticamente pelo calendário (de trás pra frente)
 // - o feed mantém histórico sem substituir cards antigos
 const HIGHLIGHTS_CALENDAR = [
-    { slug: 'gp-bahrein', category: 'GP DO BAHREIN' },
-    { slug: 'gp-arabia-saudita', category: 'GP DA ARÁBIA SAUDITA' },
-    { slug: 'gp-imola', category: 'GP DE ÍMOLA' },
-    { slug: 'gp-azerbaijao', category: 'GP DO AZERBAIJÃO' },
-    { slug: 'gp-brasil', category: 'GP DO BRASIL' },
-    { slug: 'gp-canada', category: 'GP DO CANADÁ' },
-    { slug: 'gp-mexico', category: 'GP DO MÉXICO' },
-    { slug: 'gp-japao', category: 'GP DO JAPÃO' },
+    { slug: 'bahrein', category: 'GP DO BAHREIN' },
+    { slug: 'arabia-saudita', category: 'GP DA ARÁBIA SAUDITA' },
+    { slug: 'imola', category: 'GP DE ÍMOLA' },
+    { slug: 'azerbaijao', category: 'GP DO AZERBAIJÃO' },
+    { slug: 'brasil', category: 'GP DO BRASIL' },
+    { slug: 'canada', category: 'GP DO CANADÁ' },
+    { slug: 'mexico', category: 'GP DO MÉXICO' },
+    { slug: 'japao', category: 'GP DO JAPÃO' },
 ];
 
 const HIGHLIGHTS_WINNERS = {
-    'gp-bahrein': { carreira: 'Claudio Francisco', light: 'Julio Melo' },
-    'gp-arabia-saudita': { carreira: 'A definir', light: 'Will Power' },
-    'gp-imola': { carreira: 'A definir', light: 'Victor Bitarães' },
-    'gp-azerbaijao': { carreira: 'A definir', light: 'A definir' },
-    'gp-brasil': { carreira: 'A definir', light: 'A definir' },
-    'gp-canada': { carreira: 'A definir', light: 'A definir' },
-    'gp-mexico': { carreira: 'A definir', light: 'A definir' },
-    'gp-japao': { carreira: 'A definir', light: 'A definir' },
+    bahrein: { carreira: 'Claudio Francisco', light: 'Julio Melo' },
+    'arabia-saudita': { carreira: 'A definir', light: 'Will Power' },
+    imola: { carreira: 'A definir', light: 'Victor Bitarães' },
+    azerbaijao: { carreira: 'A definir', light: 'A definir' },
+    brasil: { carreira: 'A definir', light: 'A definir' },
+    canada: { carreira: 'A definir', light: 'A definir' },
+    mexico: { carreira: 'A definir', light: 'A definir' },
+    japao: { carreira: 'A definir', light: 'A definir' },
 };
 
 const getStageShortName = (category = '') =>
